@@ -79,7 +79,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
      */
     @Override
     public Path getGameDir() {
-        return FMLPaths.GAMEDIR.get();
+        return FMLPaths.GAMEDIR.get().toAbsolutePath().normalize();
     }
 
     @Override
