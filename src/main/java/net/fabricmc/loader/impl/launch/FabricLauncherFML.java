@@ -29,13 +29,16 @@ import java.util.jar.Manifest;
 
 public class FabricLauncherFML extends FabricLauncherBase {
     @Override
-    public void addToClassPath(Path path, String... allowedPrefixes) {}
+    public void addToClassPath(Path path, String... allowedPrefixes) {
+    }
 
     @Override
-    public void setAllowedPrefixes(Path path, String... prefixes) {}
+    public void setAllowedPrefixes(Path path, String... prefixes) {
+    }
 
     @Override
-    public void setValidParentClassPath(Collection<Path> paths) {}
+    public void setValidParentClassPath(Collection<Path> paths) {
+    }
 
     @Override
     public EnvType getEnvironmentType() {
@@ -83,7 +86,7 @@ public class FabricLauncherFML extends FabricLauncherBase {
     }
 
     @Override
-    public String getTargetNamespace() {
+    public final String getDefaultRuntimeNamespace() {
         return LoaderUtil.RUNTIME_MAPPING;
     }
 
