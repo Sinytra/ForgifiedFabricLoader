@@ -9,10 +9,14 @@ plugins {
 // TODO Api compat check
 val versionMc: String by rootProject
 val versionLoaderUpstream: String by rootProject
-val implVersion = "1.0"
+val implVersion = "1.0.1"
 
 group = "dev.su5ed.sinytra"
 version = "$implVersion+$versionLoaderUpstream"
+
+java {
+    withSourcesJar()
+}
 
 minecraft {
     mappings("official", versionMc)
@@ -38,7 +42,7 @@ minecraft {
 sourceSets {
     main {
         java {
-            srcDirs("src/main/java", "src/main/legacyJava")
+            srcDirs("src/main/legacyJava")
         }
     }
 }

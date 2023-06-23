@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.impl;
 
+import cpw.mods.modlauncher.ArgumentHandler;
+import cpw.mods.modlauncher.Launcher;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.ModContainer;
@@ -30,6 +32,7 @@ import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -45,6 +48,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
     private final ObjectShare objectShare = new ObjectShareImpl();
     private final MappingResolverImpl mappingResolver = new MappingResolverImpl();
+    
+    private String[] launchArgs;
 
     private FabricLoaderImpl() {}
 
@@ -128,7 +133,17 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
     @Override
     public String[] getLaunchArguments(boolean sanitize) {
-        throw new UnsupportedOperationException();
+        if (launchArgs == null) {
+            try {
+                Field argumentHandlerField = Launcher.class.getDeclaredField("argumentHandler");
+                argumentHandlerField.setAccessible(true);
+                ArgumentHandler handler = (ArgumentHandler) argumentHandlerField.get(Launcher.INSTANCE);
+                launchArgs = handler.buildArgumentList();
+            } catch (Throwable t) {
+                throw new RuntimeException(t);
+            }
+        }
+        return launchArgs;
     }
 
     public boolean hasEntrypoints(String key) {
