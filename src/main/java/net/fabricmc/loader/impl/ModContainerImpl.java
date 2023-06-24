@@ -23,12 +23,7 @@ import net.fabricmc.loader.impl.metadata.ModOriginImpl;
 import net.minecraftforge.forgespi.language.IModInfo;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("deprecation")
@@ -39,8 +34,12 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 	private final Collection<String> childModIds;
 
 	public ModContainerImpl(IModInfo modInfo) {
+		this(modInfo, Objects.requireNonNull((LoaderModMetadata) modInfo.getOwningFile().getFileProperties().get("metadata")));
+	}
+
+	public ModContainerImpl(IModInfo modInfo, LoaderModMetadata metadata) {
 		this.modInfo = modInfo;
-		this.metadata = Objects.requireNonNull((LoaderModMetadata) modInfo.getOwningFile().getFileProperties().get("metadata"));
+		this.metadata = metadata;
 		this.origin = new ModOriginImpl(getRootPaths());
 		this.childModIds = modInfo.getOwningFile().getMods().stream().filter(other -> other != modInfo).map(IModInfo::getDisplayName).collect(Collectors.toSet());
 	}

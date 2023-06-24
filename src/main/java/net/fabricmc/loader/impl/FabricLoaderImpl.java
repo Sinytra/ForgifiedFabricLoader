@@ -29,7 +29,7 @@ import net.fabricmc.loader.impl.util.DefaultLanguageAdapter;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
+import net.minecraftforge.forgespi.language.IModInfo;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -48,10 +48,11 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
     private final ObjectShare objectShare = new ObjectShareImpl();
     private final MappingResolverImpl mappingResolver = new MappingResolverImpl();
-    
+
     private String[] launchArgs;
 
-    private FabricLoaderImpl() {}
+    private FabricLoaderImpl() {
+    }
 
     @Override
     public Object getGameInstance() {
@@ -154,13 +155,22 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
         return entrypointStorage.getModInstances().get(modid);
     }
 
-    public void setup(List<ModInfo> fmlMods) {
-        for (ModInfo mod : fmlMods) {
+    public void addFmlMods(List<? extends IModInfo> fmlMods) {
+        for (IModInfo mod : fmlMods) {
             ModContainerImpl container = new ModContainerImpl(mod);
             mods.add(container);
             modMap.put(mod.getModId(), container);
         }
+    }
 
+    public void addMods(List<ModContainerImpl> fabricMods) {
+        for (ModContainerImpl mod : fabricMods) {
+            mods.add(mod);
+            modMap.put(mod.getMetadata().getId(), mod);
+        }
+    }
+
+    public void setup() {
         setupLanguageAdapters();
         setupMods();
     }

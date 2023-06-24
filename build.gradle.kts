@@ -9,7 +9,7 @@ plugins {
 // TODO Api compat check
 val versionMc: String by rootProject
 val versionLoaderUpstream: String by rootProject
-val implVersion = "1.0.1"
+val implVersion = "1.0.2"
 
 group = "dev.su5ed.sinytra"
 version = "$implVersion+$versionLoaderUpstream"
