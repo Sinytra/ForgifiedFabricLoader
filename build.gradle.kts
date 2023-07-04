@@ -1,18 +1,47 @@
+import net.fabricmc.loom.api.mappings.layered.MappingsNamespace
 import net.minecraftforge.gradle.common.util.RunConfig
+import java.nio.file.FileSystems
+import java.nio.file.StandardOpenOption
+import net.fabricmc.loom.util.srg.SrgMerger
+import net.fabricmc.loom.util.srg.Tsrg2Writer
+import net.fabricmc.mappingio.MappingReader
+import net.fabricmc.mappingio.adapter.MappingDstNsReorder
+import net.fabricmc.mappingio.tree.MappingTree
+import net.fabricmc.mappingio.tree.MemoryMappingTree
+import net.minecraftforge.gradle.mcp.tasks.GenerateSRG
+import net.minecraftforge.srgutils.IMappingFile.Format
+import kotlin.io.path.writeText
 
 plugins {
     java
     `maven-publish`
     id("net.minecraftforge.gradle") version "[6.0,6.2)"
+    // Used for mapping tools only, provides TSRG writer on top of mappings-io
+    id("dev.architectury.loom") version "1.2-SNAPSHOT" apply false
 }
 
 // TODO Api compat check
 val versionMc: String by rootProject
 val versionLoaderUpstream: String by rootProject
-val implVersion = "1.0.2"
+val versionYarn: String by project
+val implVersion = "1.0.3"
 
 group = "dev.su5ed.sinytra"
 version = "$implVersion+$versionLoaderUpstream"
+
+val yarnMappings: Configuration by configurations.creating
+
+val createObfToMcp by tasks.registering(GenerateSRG::class) {
+    notch = true
+    srg.set(tasks.extractSrg.flatMap { it.output })
+    mappings.set(minecraft.mappings)
+    format.set(Format.TSRG)
+}
+
+val createMappings by tasks.registering(GenerateMergedMappingsTask::class) {
+    inputYarnMappings.set { yarnMappings.singleFile }
+    inputSrgMappings.set(tasks.extractSrg.flatMap { it.output })
+}
 
 java {
     withSourcesJar()
@@ -42,7 +71,7 @@ minecraft {
 sourceSets {
     main {
         java {
-            srcDirs("src/main/legacyJava")
+            srcDir("src/main/legacyJava")
         }
     }
 }
@@ -61,15 +90,19 @@ repositories {
 
 dependencies {
     minecraft(group = "net.minecraftforge", name = "forge", version = "$versionMc-45.0.64")
+    yarnMappings(group = "net.fabricmc", name = "yarn", version = versionYarn)
 
-    implementation("net.minecraftforge:fmlloader:1.19.4-45.1.0")
     implementation("net.minecraftforge:srgutils:0.5.4")
-
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
 }
 
-tasks.withType<GenerateModuleMetadata> {
-    isEnabled = false
+tasks {
+    jar {
+        from(createMappings.flatMap { it.outputFile }) { rename { "mappings.tsrg" } }
+    }
+
+    withType<GenerateModuleMetadata> {
+        isEnabled = false
+    }
 }
 
 publishing {
@@ -89,5 +122,43 @@ publishing {
                 password = System.getenv("MAVEN_PASSWORD") ?: "set"
             }
         }
+    }
+}
+
+@CacheableTask
+open class GenerateMergedMappingsTask : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    val inputYarnMappings: RegularFileProperty = project.objects.fileProperty()
+
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    val inputSrgMappings: RegularFileProperty = project.objects.fileProperty()
+
+    @get:OutputFile
+    val outputFile: RegularFileProperty = project.objects.fileProperty().convention(project.layout.buildDirectory.file("$name/output.tsrg"))
+
+    @TaskAction
+    fun execute() {
+        // OFFICIAL -> INTERMEDIARY -> NAMED
+        val yarnTree = MemoryMappingTree()
+        FileSystems.newFileSystem(inputYarnMappings.asFile.get().toPath()).use {
+            val mappings = it.getPath("mappings", "mappings.tiny")
+            MappingReader.read(mappings, yarnTree)
+        }
+
+        val officialTreePath = temporaryDir.resolve("mappings-base.tsrg").toPath()
+        officialTreePath.writeText(Tsrg2Writer.serialize(yarnTree), Charsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+
+        // OFFICIAL -> SRG -> INTERMEDIARY -> NAMED
+        val mergedTree = SrgMerger.mergeSrg(inputSrgMappings.asFile.get().toPath(), officialTreePath, null, true)
+        @Suppress("INACCESSIBLE_TYPE")
+        mergedTree.classes.forEach { c: MappingTree.ClassMapping -> c.methods.forEach { it.args.clear() } }
+
+        // OFFICIAL -> SRG -> INTERMEDIARY
+        val filteredTree = MemoryMappingTree()
+        val destFiler = MappingDstNsReorder(filteredTree, MappingsNamespace.SRG.toString(), MappingsNamespace.INTERMEDIARY.toString())
+        mergedTree.accept(destFiler)
+        outputFile.get().asFile.toPath().writeText(Tsrg2Writer.serialize(filteredTree), Charsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
     }
 }
