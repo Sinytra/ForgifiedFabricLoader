@@ -47,7 +47,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
     private final EntrypointStorage entrypointStorage = new EntrypointStorage();
 
     private final ObjectShare objectShare = new ObjectShareImpl();
-    private MappingResolverImpl mappingResolver;
+    private volatile MappingResolverImpl mappingResolver;
 
     private String[] launchArgs;
 
@@ -105,7 +105,11 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
     @Override
     public MappingResolverImpl getMappingResolver() {
         if (mappingResolver == null) {
-            mappingResolver = new MappingResolverImpl();
+            synchronized (this) {
+                if (mappingResolver == null) {
+                    mappingResolver = new MappingResolverImpl();
+                }
+            }
         }
         return mappingResolver;
     }

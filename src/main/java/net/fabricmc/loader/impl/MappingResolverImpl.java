@@ -1,9 +1,9 @@
 package net.fabricmc.loader.impl;
 
-import cpw.mods.modlauncher.Launcher;
 import cpw.mods.modlauncher.api.INameMappingService;
 import net.fabricmc.loader.api.MappingResolver;
 import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.srgutils.IMappingBuilder;
 import net.minecraftforge.srgutils.IMappingFile;
 import net.minecraftforge.srgutils.INamedMappingFile;
@@ -43,7 +43,7 @@ public class MappingResolverImpl implements MappingResolver {
             if (!FML_NAMESPACE.equals(OBF_NAMESPACE) && names.contains(OBF_NAMESPACE)) {
                 IMappingBuilder builder = IMappingBuilder.create(Stream.concat(map.getNames().stream(), Stream.of(FML_NAMESPACE)).toArray(String[]::new));
                 // Grab modlauncher service for remapping SRG -> MOJ
-                BiFunction<INameMappingService.Domain, String, String> mapper = Launcher.INSTANCE.environment().findNameMapping(OBF_NAMESPACE).orElseThrow();
+                BiFunction<INameMappingService.Domain, String, String> mapper = FMLLoader.getNameFunction(OBF_NAMESPACE).orElseThrow();
 
                 // Get all names but SRG
                 List<String> filtered = new ArrayList<>(names);
