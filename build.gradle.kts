@@ -24,7 +24,7 @@ plugins {
 val versionMc: String by rootProject
 val versionLoaderUpstream: String by rootProject
 val versionYarn: String by project
-val implVersion = "1.0.3"
+val implVersion = "1.0.4"
 
 group = "dev.su5ed.sinytra"
 version = "$implVersion+$versionLoaderUpstream"
