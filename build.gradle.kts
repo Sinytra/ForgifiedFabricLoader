@@ -16,6 +16,7 @@ plugins {
     java
     `maven-publish`
     id("net.minecraftforge.gradle") version "[6.0,6.2)"
+    id("me.qoomon.git-versioning") version "6.3.+"
     // Used for mapping tools only, provides TSRG writer on top of mappings-io
     id("dev.architectury.loom") version "1.2-SNAPSHOT" apply false
 }
@@ -24,10 +25,15 @@ plugins {
 val versionMc: String by rootProject
 val versionLoaderUpstream: String by rootProject
 val versionYarn: String by project
-val implVersion = "1.0.4"
 
 group = "dev.su5ed.sinytra"
-version = "$implVersion+$versionLoaderUpstream"
+version = "0.0.0-SNAPSHOT"
+
+gitVersioning.apply {
+    rev {
+        version = "\${describe.tag.version.major}.\${describe.tag.version.minor}.\${describe.tag.version.patch.plus.describe.distance}+$versionLoaderUpstream"
+    }
+}
 
 val yarnMappings: Configuration by configurations.creating
 
