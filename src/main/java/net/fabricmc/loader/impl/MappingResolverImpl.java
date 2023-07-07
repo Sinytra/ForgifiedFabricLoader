@@ -23,16 +23,16 @@ public class MappingResolverImpl implements MappingResolver {
     /**
      * We ship this file in our jar, by default it contains OFFICIAL -> SRG -> INTERMEDIARY mappings
      */
-    private static final String MAPPINGS_RESOURCE = "mappings.tsrg";
+    private static final String MAPPINGS_RESOURCE = "/mappings.tsrg";
     private static final String FML_NAMESPACE = FMLEnvironment.naming;
     private static final String OBF_NAMESPACE = "srg";
 
     private final INamedMappingFile mappings;
 
     public MappingResolverImpl() {
-        URL path = ClassLoader.getSystemResource(MAPPINGS_RESOURCE);
+        URL path = getClass().getResource(MAPPINGS_RESOURCE);
         if (path == null && !FMLEnvironment.production)
-            throw new RuntimeException("Mappings file not found in dev, bug?");
+            throw new RuntimeException("Missing mappings file");
 
         try (InputStream is = path.openStream()) {
             INamedMappingFile map = INamedMappingFile.load(is);
