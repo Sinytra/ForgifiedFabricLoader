@@ -1,15 +1,20 @@
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace
-import net.minecraftforge.gradle.common.util.RunConfig
-import java.nio.file.FileSystems
-import java.nio.file.StandardOpenOption
 import net.fabricmc.loom.util.srg.SrgMerger
 import net.fabricmc.loom.util.srg.Tsrg2Writer
 import net.fabricmc.mappingio.MappingReader
+import net.fabricmc.mappingio.MappingVisitor
+import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor
 import net.fabricmc.mappingio.adapter.MappingDstNsReorder
+import net.fabricmc.mappingio.adapter.MappingNsCompleter
+import net.fabricmc.mappingio.adapter.MappingNsRenamer
+import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch
 import net.fabricmc.mappingio.tree.MappingTree
 import net.fabricmc.mappingio.tree.MemoryMappingTree
+import net.minecraftforge.gradle.common.util.RunConfig
 import net.minecraftforge.gradle.mcp.tasks.GenerateSRG
 import net.minecraftforge.srgutils.IMappingFile.Format
+import java.nio.file.FileSystems
+import java.nio.file.StandardOpenOption
 import kotlin.io.path.writeText
 
 plugins {
@@ -146,15 +151,28 @@ open class GenerateMergedMappingsTask : DefaultTask() {
 
     @TaskAction
     fun execute() {
-        // OFFICIAL -> INTERMEDIARY -> NAMED
+        // OFFICIAL -> SRG -> INTERMEDIARY
         val yarnTree = MemoryMappingTree()
+        val renamed = MappingNsRenamer(yarnTree, mapOf(
+            "left" to MappingsNamespace.OFFICIAL.toString(),
+            "right" to MappingsNamespace.SRG.toString()
+        ))
+        MappingReader.read(inputSrgMappings.asFile.get().toPath(), renamed)
         FileSystems.newFileSystem(inputYarnMappings.asFile.get().toPath()).use {
             val mappings = it.getPath("mappings", "mappings.tiny")
-            MappingReader.read(mappings, yarnTree)
+            val selector = MappingDstNsReorder(yarnTree, MappingsNamespace.INTERMEDIARY.toString())
+            MappingReader.read(mappings, selector)
         }
 
+        // Complete INTERMEDIARY from OFFICIAL
+        val completed = MemoryMappingTree()
+        val completer = MappingNsCompleter(completed, mapOf(MappingsNamespace.INTERMEDIARY.toString() to MappingsNamespace.OFFICIAL.toString()))
+        // Remove SRG, but also add NAMED because SrgMerger demands it
+        val selector = MappingDstNsReorder(completer, MappingsNamespace.INTERMEDIARY.toString(), MappingsNamespace.NAMED.toString())
+        yarnTree.accept(selector)
+
         val officialTreePath = temporaryDir.resolve("mappings-base.tsrg").toPath()
-        officialTreePath.writeText(Tsrg2Writer.serialize(yarnTree), Charsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+        officialTreePath.writeText(Tsrg2Writer.serialize(completed), Charsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
 
         // OFFICIAL -> SRG -> INTERMEDIARY -> NAMED
         val mergedTree = SrgMerger.mergeSrg(inputSrgMappings.asFile.get().toPath(), officialTreePath, null, true)
