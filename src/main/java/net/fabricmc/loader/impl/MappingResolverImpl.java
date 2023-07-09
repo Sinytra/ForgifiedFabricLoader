@@ -58,7 +58,7 @@ public class MappingResolverImpl implements MappingResolver {
                     // Add all methods
                     cls.getMethods().forEach(mtd -> newCls.method(mtd.getDescriptor(), getNames(map, filtered, mtd,
                             (m, name) -> m.getClass(cls.getOriginal()).getMethod(name, mtd.getDescriptor()),
-                            mapper.apply(INameMappingService.Domain.METHOD, mtd.getMapped()))));
+                            mapMethodNameIncludingRecords(mapper, mtd.getMapped()))));
                     // Add all fields
                     cls.getFields().forEach(fd -> newCls.field(getNames(map, filtered, fd,
                             (m, name) -> m.getClass(cls.getOriginal()).getField(name),
@@ -73,6 +73,15 @@ public class MappingResolverImpl implements MappingResolver {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    // See https://github.com/MinecraftForge/ForgeGradle/issues/922
+    private static String mapMethodNameIncludingRecords(BiFunction<INameMappingService.Domain, String, String> mapper, String name) {
+        String mapped = mapper.apply(INameMappingService.Domain.METHOD, name);
+        if (mapped.equals(name)) {
+            mapped = mapper.apply(INameMappingService.Domain.FIELD, name);
+        }
+        return mapped;
     }
 
     /**
