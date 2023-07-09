@@ -26,6 +26,7 @@ plugins {
 
 // TODO Api compat check
 val versionMc: String by rootProject
+val versionForge: String by rootProject
 val versionLoaderUpstream: String by rootProject
 val versionYarn: String by project
 
@@ -34,7 +35,7 @@ version = "0.0.0-SNAPSHOT"
 
 gitVersioning.apply {
     rev {
-        version = "\${describe.tag.version.major}.\${describe.tag.version.minor}.\${describe.tag.version.patch.plus.describe.distance}+$versionLoaderUpstream"
+        version = "\${describe.tag.version.major}.\${describe.tag.version.minor}.\${describe.tag.version.patch.plus.describe.distance}+$versionLoaderUpstream+$versionMc"
     }
 }
 
@@ -103,7 +104,7 @@ repositories {
 }
 
 dependencies {
-    minecraft(group = "net.minecraftforge", name = "forge", version = "$versionMc-45.0.64")
+    minecraft(group = "net.minecraftforge", name = "forge", version = "$versionMc-$versionForge")
     yarnMappings(group = "net.fabricmc", name = "yarn", version = versionYarn)
 
     implementation("net.minecraftforge:srgutils:0.5.4")
