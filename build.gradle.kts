@@ -2,12 +2,9 @@ import net.fabricmc.loom.api.mappings.layered.MappingsNamespace
 import net.fabricmc.loom.util.srg.SrgMerger
 import net.fabricmc.loom.util.srg.Tsrg2Writer
 import net.fabricmc.mappingio.MappingReader
-import net.fabricmc.mappingio.MappingVisitor
-import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor
 import net.fabricmc.mappingio.adapter.MappingDstNsReorder
 import net.fabricmc.mappingio.adapter.MappingNsCompleter
 import net.fabricmc.mappingio.adapter.MappingNsRenamer
-import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch
 import net.fabricmc.mappingio.tree.MappingTree
 import net.fabricmc.mappingio.tree.MemoryMappingTree
 import net.minecraftforge.gradle.common.util.RunConfig
@@ -22,6 +19,7 @@ plugins {
     `maven-publish`
     id("net.minecraftforge.gradle") version "[6.0,6.2)"
     id("me.qoomon.git-versioning") version "6.3.+"
+    id("org.cadixdev.licenser") version "0.6.1"
     // Used for mapping tools only, provides TSRG writer on top of mappings-io
     id("dev.architectury.loom") version "1.2-SNAPSHOT" apply false
 }
@@ -38,6 +36,11 @@ gitVersioning.apply {
     rev {
         version = "\${describe.tag.version.major}.\${describe.tag.version.minor}.\${describe.tag.version.patch.plus.describe.distance}+$versionLoaderUpstream"
     }
+}
+
+license {
+    header("HEADER")
+    exclude("net/fabricmc/loader/impl/lib/gson/**")
 }
 
 val yarnMappings: Configuration by configurations.creating
@@ -104,6 +107,10 @@ dependencies {
     yarnMappings(group = "net.fabricmc", name = "yarn", version = versionYarn)
 
     implementation("net.minecraftforge:srgutils:0.5.4")
+    
+    testCompileOnly("org.jetbrains:annotations:23.0.0")
+    // Unit testing for mod metadata
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
 }
 
 tasks {
