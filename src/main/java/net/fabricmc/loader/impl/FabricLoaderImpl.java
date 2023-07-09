@@ -165,15 +165,25 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
     public void addFmlMods(List<? extends IModInfo> fmlMods) {
         for (IModInfo mod : fmlMods) {
             ModContainerImpl container = new ModContainerImpl(mod);
+            if (modMap.put(mod.getModId(), container) != null) {
+                throw new IllegalStateException("Duplicate fml mod with metadata: " + mod.getModId());
+            }
             mods.add(container);
-            modMap.put(mod.getModId(), container);
+            for (String provides : container.getMetadata().getProvides()) {
+                modMap.put(provides, container);
+            }
         }
     }
 
     public void addMods(List<ModContainerImpl> fabricMods) {
         for (ModContainerImpl mod : fabricMods) {
+            if (modMap.put(mod.getMetadata().getId(), mod) != null) {
+                throw new IllegalStateException("Duplicate fabric mod: " + mod.getMetadata().getId()); 
+            }
             mods.add(mod);
-            modMap.put(mod.getMetadata().getId(), mod);
+            for (String provides : mod.getMetadata().getProvides()) {
+                modMap.put(provides, mod);
+            }
         }
     }
 

@@ -18,6 +18,7 @@ package net.fabricmc.loader.impl;
 
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModOrigin;
+import net.fabricmc.loader.impl.discovery.BuiltinMetadataWrapper;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.ModOriginImpl;
 import net.minecraftforge.forgespi.language.IModInfo;
@@ -28,78 +29,79 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("deprecation")
 public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
-	private final IModInfo modInfo;
-	private final LoaderModMetadata metadata;
-	private final ModOrigin origin;
-	private final Collection<String> childModIds;
+    private final IModInfo modInfo;
+    private final LoaderModMetadata metadata;
+    private final ModOrigin origin;
+    private final Collection<String> childModIds;
 
-	public ModContainerImpl(IModInfo modInfo) {
-		this(modInfo, Objects.requireNonNull((LoaderModMetadata) modInfo.getOwningFile().getFileProperties().get("metadata")));
-	}
+    public ModContainerImpl(IModInfo modInfo) {
+        this(modInfo, Optional.ofNullable((LoaderModMetadata) modInfo.getOwningFile().getFileProperties().get("metadata"))
+                .orElseGet(() -> new BuiltinMetadataWrapper(new FMLModMetadata(modInfo))));
+    }
 
-	public ModContainerImpl(IModInfo modInfo, LoaderModMetadata metadata) {
-		this.modInfo = modInfo;
-		this.metadata = metadata;
-		this.origin = new ModOriginImpl(getRootPaths());
-		this.childModIds = modInfo.getOwningFile().getMods().stream().filter(other -> other != modInfo).map(IModInfo::getDisplayName).collect(Collectors.toSet());
-	}
+    public ModContainerImpl(IModInfo modInfo, LoaderModMetadata metadata) {
+        this.modInfo = modInfo;
+        this.metadata = metadata;
+        this.origin = new ModOriginImpl(getRootPaths());
+        this.childModIds = modInfo.getOwningFile().getMods().stream().filter(other -> other != modInfo).map(IModInfo::getDisplayName).collect(Collectors.toSet());
+    }
 
-	@Override
-	public LoaderModMetadata getMetadata() {
-		return this.metadata;
-	}
+    @Override
+    public LoaderModMetadata getMetadata() {
+        return this.metadata;
+    }
 
-	@Override
-	public ModOrigin getOrigin() {
-		return origin;
-	}
+    @Override
+    public ModOrigin getOrigin() {
+        return origin;
+    }
 
-	@Override
-	public List<Path> getCodeSourcePaths() {
-		return getRootPaths();
-	}
+    @Override
+    public List<Path> getCodeSourcePaths() {
+        return getRootPaths();
+    }
 
-	@Override
-	public Path getRootPath() {
-		return this.modInfo.getOwningFile().getFile().findResource(".");
-	}
+    @Override
+    public Path getRootPath() {
+        return this.modInfo.getOwningFile().getFile().findResource(".");
+    }
 
-	@Override
-	public List<Path> getRootPaths() {
-		return List.of(getRootPath());
-	}
+    @Override
+    public List<Path> getRootPaths() {
+        return List.of(getRootPath());
+    }
 
-	@Override
-	public Path getPath(String file) {
-		return this.modInfo.getOwningFile().getFile().findResource(file);
-	}
+    @Override
+    public Path getPath(String file) {
+        return this.modInfo.getOwningFile().getFile().findResource(file);
+    }
 
-	@Override
-	public Optional<ModContainer> getContainingMod() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public Optional<ModContainer> getContainingMod() {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public Collection<ModContainer> getContainedMods() {
-		if (this.childModIds.isEmpty()) return Collections.emptyList();
+    @Override
+    public Collection<ModContainer> getContainedMods() {
+        if (this.childModIds.isEmpty()) return Collections.emptyList();
 
-		List<ModContainer> ret = new ArrayList<>(this.childModIds.size());
+        List<ModContainer> ret = new ArrayList<>(this.childModIds.size());
 
-		for (String id : this.childModIds) {
-			FabricLoaderImpl.INSTANCE.getModContainer(id).ifPresent(ret::add);
-		}
+        for (String id : this.childModIds) {
+            FabricLoaderImpl.INSTANCE.getModContainer(id).ifPresent(ret::add);
+        }
 
-		return ret;
-	}
+        return ret;
+    }
 
-	@Deprecated
-	@Override
-	public LoaderModMetadata getInfo() {
-		return getMetadata();
-	}
+    @Deprecated
+    @Override
+    public LoaderModMetadata getInfo() {
+        return getMetadata();
+    }
 
-	@Override
-	public String toString() {
-		return String.format("%s %s", this.modInfo.getModId(), this.modInfo.getVersion());
-	}
+    @Override
+    public String toString() {
+        return String.format("%s %s", this.modInfo.getModId(), this.modInfo.getVersion());
+    }
 }
