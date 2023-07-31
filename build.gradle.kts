@@ -116,7 +116,11 @@ dependencies {
 tasks {
     jar {
         from(createMappings.flatMap { it.outputFile }) { rename { "mappings.tsrg" } }
-        manifest.attributes("FMLModType" to "LANGPROVIDER")
+        manifest.attributes(
+            "FMLModType" to "LANGPROVIDER",
+            "Automatic-Module-Name" to "net.fabricmc.loader",
+            "Implementation-Version" to archiveVersion.get()
+        )
     }
 
     withType<GenerateModuleMetadata> {

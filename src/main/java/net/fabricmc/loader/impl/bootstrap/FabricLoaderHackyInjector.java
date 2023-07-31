@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dev.su5ed.sinytra.loader;
+package net.fabricmc.loader.impl.bootstrap;
 
 import cpw.mods.modlauncher.LaunchPluginHandler;
 import cpw.mods.modlauncher.Launcher;

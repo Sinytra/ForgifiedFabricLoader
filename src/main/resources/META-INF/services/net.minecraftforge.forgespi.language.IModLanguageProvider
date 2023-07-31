@@ -1,1 +1,1 @@
-dev.su5ed.sinytra.loader.FabricLoaderHackyInjector
+net.fabricmc.loader.impl.bootstrap.FabricLoaderHackyInjector
