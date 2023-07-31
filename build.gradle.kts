@@ -24,7 +24,6 @@ plugins {
     id("dev.architectury.loom") version "1.2-SNAPSHOT" apply false
 }
 
-// TODO Api compat check
 val versionMc: String by rootProject
 val versionForge: String by rootProject
 val versionLoaderUpstream: String by rootProject
@@ -117,6 +116,7 @@ dependencies {
 tasks {
     jar {
         from(createMappings.flatMap { it.outputFile }) { rename { "mappings.tsrg" } }
+        manifest.attributes("FMLModType" to "LANGPROVIDER")
     }
 
     withType<GenerateModuleMetadata> {

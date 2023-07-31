@@ -50,6 +50,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
     private volatile MappingResolverImpl mappingResolver;
 
     private String[] launchArgs;
+    private boolean loadedFMLMods;
 
     private FabricLoaderImpl() {
     }
@@ -163,22 +164,25 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
     }
 
     public void addFmlMods(List<? extends IModInfo> fmlMods) {
-        for (IModInfo mod : fmlMods) {
-            ModContainerImpl container = new ModContainerImpl(mod);
-            if (modMap.put(mod.getModId(), container) != null) {
-                throw new IllegalStateException("Duplicate fml mod with metadata: " + mod.getModId());
+        if (!loadedFMLMods) {
+            for (IModInfo mod : fmlMods) {
+                ModContainerImpl container = new ModContainerImpl(mod);
+                if (modMap.put(mod.getModId(), container) != null) {
+                    throw new IllegalStateException("Duplicate fml mod with metadata: " + mod.getModId());
+                }
+                mods.add(container);
+                for (String provides : container.getMetadata().getProvides()) {
+                    modMap.put(provides, container);
+                }
             }
-            mods.add(container);
-            for (String provides : container.getMetadata().getProvides()) {
-                modMap.put(provides, container);
-            }
+            loadedFMLMods = true;
         }
     }
 
     public void addMods(List<ModContainerImpl> fabricMods) {
         for (ModContainerImpl mod : fabricMods) {
             if (modMap.put(mod.getMetadata().getId(), mod) != null) {
-                throw new IllegalStateException("Duplicate fabric mod: " + mod.getMetadata().getId()); 
+                throw new IllegalStateException("Duplicate fabric mod: " + mod.getMetadata().getId());
             }
             mods.add(mod);
             for (String provides : mod.getMetadata().getProvides()) {
