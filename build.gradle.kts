@@ -107,6 +107,8 @@ dependencies {
     yarnMappings(group = "net.fabricmc", name = "yarn", version = versionYarn)
 
     implementation("net.minecraftforge:srgutils:0.5.4")
+    implementation("org.ow2.sat4j:org.ow2.sat4j.core:2.3.6")
+    implementation("org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6")
     
     testCompileOnly("org.jetbrains:annotations:23.0.0")
     // Unit testing for mod metadata
