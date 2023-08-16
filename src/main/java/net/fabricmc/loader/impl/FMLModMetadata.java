@@ -35,9 +35,10 @@ public class FMLModMetadata implements ModMetadata {
     public FMLModMetadata(IModInfo modInfo) {
         this.modInfo = modInfo;
         this.version = uncheck(() -> Version.parse(this.modInfo.getVersion().toString()));
-        this.authors = modInfo.getConfig().getConfigElement("authors")
-                .map(str -> Stream.of(((String) str).split(",")).<Person>map(SimplePerson::new).toList())
-                .orElseGet(List::of);
+        this.authors = modInfo.getConfig().getConfigElement("authors").stream()
+            .flatMap(obj -> obj instanceof List list ? ((List<String>) list).stream() : Stream.of(obj.toString().split(",")))
+            .<Person>map(SimplePerson::new)
+            .toList();
     }
 
     @Override
