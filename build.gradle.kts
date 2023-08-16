@@ -41,6 +41,7 @@ gitVersioning.apply {
 license {
     header("HEADER")
     exclude("net/fabricmc/loader/impl/lib/gson/**")
+    exclude("**/*.properties")
 }
 
 val yarnMappings: Configuration by configurations.creating

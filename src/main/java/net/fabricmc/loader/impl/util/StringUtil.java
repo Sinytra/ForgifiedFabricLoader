@@ -20,13 +20,15 @@ public final class StringUtil {
 	public static String capitalize(String s) {
 		if (s.isEmpty()) return s;
 
-		int cp = s.codePointAt(0);
+		boolean hasControlCode = s.startsWith("\u00a7");
+		int cp = s.codePointAt(hasControlCode ? 2 : 0);
 		int cpUpper = Character.toUpperCase(cp);
 		if (cpUpper == cp) return s;
 
 		StringBuilder ret = new StringBuilder(s.length());
+		if (hasControlCode) ret.append(s, 0, 2);
 		ret.appendCodePoint(cpUpper);
-		ret.append(s, Character.charCount(cp), s.length());
+		ret.append(s, Character.charCount(cp) + (hasControlCode ? 2 : 0), s.length());
 
 		return ret.toString();
 	}

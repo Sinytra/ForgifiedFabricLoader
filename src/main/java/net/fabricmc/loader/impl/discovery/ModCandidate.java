@@ -58,7 +58,7 @@ public final class ModCandidate implements DomainObject.Mod {
 	private int minNestLevel;
 	private SoftReference<ByteBuffer> dataRef;
 
-	static ModCandidate createBuiltin(BuiltinMod mod, VersionOverrides versionOverrides, DependencyOverrides depOverrides) {
+	public static ModCandidate createBuiltin(BuiltinMod mod, VersionOverrides versionOverrides, DependencyOverrides depOverrides) {
 		LoaderModMetadata metadata = new BuiltinMetadataWrapper(mod.metadata);
 		versionOverrides.apply(metadata);
 		depOverrides.apply(metadata);
