@@ -172,7 +172,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
                 }
                 mods.add(container);
                 for (String provides : container.getMetadata().getProvides()) {
-                    modMap.put(provides, container);
+                    modMap.putIfAbsent(provides, container);
                 }
             }
             loadedFMLMods = true;
