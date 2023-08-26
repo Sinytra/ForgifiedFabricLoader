@@ -179,18 +179,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
         }
     }
 
-    public void addMods(List<ModContainerImpl> fabricMods) {
-        for (ModContainerImpl mod : fabricMods) {
-            if (modMap.put(mod.getMetadata().getId(), mod) != null) {
-                throw new IllegalStateException("Duplicate fabric mod: " + mod.getMetadata().getId());
-            }
-            mods.add(mod);
-            for (String provides : mod.getMetadata().getProvides()) {
-                modMap.put(provides, mod);
-            }
-        }
-    }
-
     public void setup() {
         setupLanguageAdapters();
         setupMods();
