@@ -78,7 +78,7 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 
     @Override
     public Optional<ModContainer> getContainingMod() {
-        throw new UnsupportedOperationException();
+        return Optional.empty();
     }
 
     @Override

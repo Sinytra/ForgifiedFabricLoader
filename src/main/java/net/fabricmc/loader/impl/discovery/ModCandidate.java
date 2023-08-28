@@ -169,7 +169,7 @@ public final class ModCandidate implements DomainObject.Mod {
 		return parentMods;
 	}
 
-	boolean addParent(ModCandidate parent) {
+	public boolean addParent(ModCandidate parent) {
 		if (minNestLevel == 0) return false;
 		if (parentMods.contains(parent)) return false;
 
