@@ -28,6 +28,9 @@ import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.entrypoint.EntrypointStorage;
 import net.fabricmc.loader.impl.metadata.EntrypointMetadata;
 import net.fabricmc.loader.impl.util.DefaultLanguageAdapter;
+import net.fabricmc.loader.impl.util.ExceptionUtil;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -37,6 +40,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 
 @SuppressWarnings("deprecation")
 public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
@@ -107,6 +111,35 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
     }
 
     @Override
+    public <T> void invokeEntrypoints(String key, Class<T> type, Consumer<? super T> invoker) {
+        if (!hasEntrypoints(key)) {
+            Log.debug(LogCategory.ENTRYPOINT, "No subscribers for entrypoint '%s'", key);
+            return;
+        }
+
+        RuntimeException exception = null;
+        Collection<EntrypointContainer<T>> entrypoints = FabricLoaderImpl.INSTANCE.getEntrypointContainers(key, type);
+
+        Log.debug(LogCategory.ENTRYPOINT, "Iterating over entrypoint '%s'", key);
+
+        for (EntrypointContainer<T> container : entrypoints) {
+            try {
+                invoker.accept(container.getEntrypoint());
+            } catch (Throwable t) {
+                exception = ExceptionUtil.gatherExceptions(t,
+                    exception,
+                    exc -> new RuntimeException(String.format("Could not execute entrypoint stage '%s' due to errors, provided by '%s'!",
+                        key, container.getProvider().getMetadata().getId()),
+                        exc));
+            }
+        }
+
+        if (exception != null) {
+            throw exception;
+        }
+    }
+
+	@Override
     public MappingResolverImpl getMappingResolver() {
         if (mappingResolver == null) {
             synchronized (this) {
