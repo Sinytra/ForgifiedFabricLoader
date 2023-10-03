@@ -20,15 +20,24 @@ public final class StringUtil {
 	public static String capitalize(String s) {
 		if (s.isEmpty()) return s;
 
-		boolean hasControlCode = s.startsWith("\u00a7");
-		int cp = s.codePointAt(hasControlCode ? 2 : 0);
+		int pos;
+
+		for (pos = 0; pos < s.length(); pos++) {
+			if (Character.isLetterOrDigit(s.codePointAt(pos))) {
+				break;
+			}
+		}
+
+		if (pos == s.length()) return s;
+
+		int cp = s.codePointAt(pos);
 		int cpUpper = Character.toUpperCase(cp);
 		if (cpUpper == cp) return s;
 
 		StringBuilder ret = new StringBuilder(s.length());
-		if (hasControlCode) ret.append(s, 0, 2);
+		ret.append(s, 0, pos);
 		ret.appendCodePoint(cpUpper);
-		ret.append(s, Character.charCount(cp) + (hasControlCode ? 2 : 0), s.length());
+		ret.append(s, pos + Character.charCount(cp), s.length());
 
 		return ret.toString();
 	}
