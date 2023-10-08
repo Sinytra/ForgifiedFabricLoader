@@ -179,6 +179,15 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
         }
     }
 
+    public void aliasMods(Map<String, String> aliases) {
+        aliases.forEach((from, to) -> {
+            ModContainerImpl container = modMap.get(from);
+            if (container != null) {
+                modMap.putIfAbsent(to, container);
+            }
+        });
+    }
+
     public void setup() {
         setupLanguageAdapters();
         setupMods();
