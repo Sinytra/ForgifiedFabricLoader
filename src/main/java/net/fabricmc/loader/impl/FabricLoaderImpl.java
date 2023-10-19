@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.impl;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import cpw.mods.modlauncher.ArgumentHandler;
 import cpw.mods.modlauncher.Launcher;
 import net.fabricmc.api.EnvType;
@@ -42,6 +44,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
     private final Map<String, ModContainerImpl> modMap = new HashMap<>();
     private final List<ModContainerImpl> mods = new ArrayList<>();
+    private final Multimap<String, String> modAliases = HashMultimap.create();
 
     private final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
     private final EntrypointStorage entrypointStorage = new EntrypointStorage();
@@ -179,13 +182,12 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
         }
     }
 
-    public void aliasMods(Map<String, String> aliases) {
-        aliases.forEach((from, to) -> {
-            ModContainerImpl container = modMap.get(from);
-            if (container != null) {
-                modMap.putIfAbsent(to, container);
-            }
-        });
+    public void aliasMods(Multimap<String, String> aliases) {
+        modAliases.putAll(aliases);
+    }
+
+    public Collection<String> getModAliases(String modid) {
+        return modAliases.get(modid);
     }
 
     public void setup() {

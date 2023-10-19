@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.impl;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.*;
 import net.fabricmc.loader.impl.metadata.SimplePerson;
@@ -53,7 +54,8 @@ public class FMLModMetadata implements ModMetadata {
 
     @Override
     public Collection<String> getProvides() {
-        List<String> modProvides = ((ModInfo) this.modInfo).<List<String>>getConfigElement("provides").orElseGet(List::of);
+        List<String> modProvides = new ArrayList<>(((ModInfo) this.modInfo).<List<String>>getConfigElement("provides").orElseGet(List::of));
+        modProvides.addAll(FabricLoaderImpl.INSTANCE.getModAliases(getId()));
         // Make a guess and convert the modid into a fabric-styled one to increase dependency resolution success rate
         // Certain cross-platform mods such as Cloth Config use an underscored modid on Forge, while using a hyphenated one on Fabric
         if (modProvides.isEmpty() && getId().contains("_")) {
