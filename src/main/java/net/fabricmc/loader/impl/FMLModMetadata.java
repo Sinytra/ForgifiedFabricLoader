@@ -55,13 +55,13 @@ public class FMLModMetadata implements ModMetadata {
     @Override
     public Collection<String> getProvides() {
         List<String> modProvides = new ArrayList<>(((ModInfo) this.modInfo).<List<String>>getConfigElement("provides").orElseGet(List::of));
-        modProvides.addAll(FabricLoaderImpl.INSTANCE.getModAliases(getId()));
         // Make a guess and convert the modid into a fabric-styled one to increase dependency resolution success rate
         // Certain cross-platform mods such as Cloth Config use an underscored modid on Forge, while using a hyphenated one on Fabric
         if (modProvides.isEmpty() && getId().contains("_")) {
             String normalized = getId().replace('_', '-');
-            return List.of(normalized);
+            modProvides.add(normalized);
         }
+        modProvides.addAll(FabricLoaderImpl.INSTANCE.getModAliases(getId()));
         return modProvides;
     }
 
