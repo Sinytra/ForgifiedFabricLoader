@@ -20,6 +20,7 @@ plugins {
     id("net.minecraftforge.gradle") version "[6.0,6.2)"
     id("me.qoomon.git-versioning") version "6.3.+"
     id("org.cadixdev.licenser") version "0.6.1"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     // Used for mapping tools only, provides TSRG writer on top of mappings-io
     id("dev.architectury.loom") version "1.2-SNAPSHOT" apply false
 }
@@ -45,6 +46,7 @@ license {
 }
 
 val yarnMappings: Configuration by configurations.creating
+val shade: Configuration by configurations.creating
 
 val createObfToMcp by tasks.registering(GenerateSRG::class) {
     notch = true
@@ -91,6 +93,10 @@ sourceSets {
     }
 }
 
+configurations.implementation {
+    extendsFrom(shade)
+}
+
 repositories {
     mavenCentral()
     maven {
@@ -107,27 +113,39 @@ dependencies {
     minecraft(group = "net.minecraftforge", name = "forge", version = "$versionMc-$versionForge")
     yarnMappings(group = "net.fabricmc", name = "yarn", version = versionYarn)
 
-    implementation("net.minecraftforge:srgutils:0.5.4")
+    shade("net.minecraftforge:srgutils:0.5.4")
     implementation("org.ow2.sat4j:org.ow2.sat4j.core:2.3.6")
     implementation("org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6")
-    
+
     testCompileOnly("org.jetbrains:annotations:23.0.0")
     // Unit testing for mod metadata
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
 }
 
 tasks {
-    jar {
-        from(createMappings.flatMap { it.outputFile }) { rename { "mappings.tsrg" } }
-        manifest.attributes(
-            "FMLModType" to "LANGPROVIDER",
-            "Automatic-Module-Name" to "net.fabricmc.loader",
-            "Implementation-Version" to archiveVersion.get()
-        )
+    setOf(jar, shadowJar).forEach { provider ->
+        provider.configure {
+            from(createMappings.flatMap { it.outputFile }) { rename { "mappings.tsrg" } }
+            manifest.attributes(
+                "FMLModType" to "LANGPROVIDER",
+                "Automatic-Module-Name" to "net.fabricmc.loader",
+                "Implementation-Version" to archiveVersion.get()
+            )
+        }
+    }
+
+    shadowJar {
+        configurations = listOf(shade)
+        relocate("net.minecraftforge.srgutils", "reloc.net.minecraftforge.srgutils")
+        archiveClassifier.set("full")
     }
 
     withType<GenerateModuleMetadata> {
         isEnabled = false
+    }
+
+    assemble {
+        dependsOn(shadowJar)
     }
 }
 
