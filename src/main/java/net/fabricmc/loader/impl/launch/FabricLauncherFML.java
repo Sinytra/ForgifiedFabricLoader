@@ -16,7 +16,10 @@
 
 package net.fabricmc.loader.impl.launch;
 
+import cpw.mods.jarhandling.SecureJar;
+import cpw.mods.modlauncher.api.IModuleLayerManager;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.impl.util.ModLauncherUtils;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
 import java.io.IOException;
@@ -28,7 +31,19 @@ import java.util.jar.Manifest;
 
 public class FabricLauncherFML extends FabricLauncherBase {
     @Override
-    public void addToClassPath(Path path, String... allowedPrefixes) {}
+    public void addToClassPath(Path path, String... allowedPrefixes) {
+        SecureJar jar = SecureJar.from(path); // TODO Resolve a package conflict?
+
+        try {
+            ModLauncherUtils.addJarToLayer(IModuleLayerManager.Layer.PLUGIN, jar);
+
+        } catch (Exception e) { // Sorry
+            try {
+                ModLauncherUtils.addJarToLayer(IModuleLayerManager.Layer.GAME, jar);
+            } catch (Exception ignored) {
+            }
+        }
+    }
 
     @Override
     public void setAllowedPrefixes(Path path, String... prefixes) {}
