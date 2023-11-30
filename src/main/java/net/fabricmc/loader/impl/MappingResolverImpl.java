@@ -78,7 +78,8 @@ public class MappingResolverImpl implements MappingResolver {
                     // Add all fields
                     cls.getFields().forEach(fd -> newCls.field(getNames(map, filtered, fd,
                             (m, name) -> m.getClass(cls.getOriginal()).getField(name),
-                            mapper.apply(INameMappingService.Domain.FIELD, fd.getMapped()))));
+                            mapper.apply(INameMappingService.Domain.FIELD, fd.getMapped())))
+                        .descriptor(fd.getDescriptor()));
                 });
                 // Add all packages
                 primary.getPackages().forEach(pkg -> builder.addPackage(getNames(map, filtered, pkg, IMappingFile::getPackage, pkg.getOriginal())));
