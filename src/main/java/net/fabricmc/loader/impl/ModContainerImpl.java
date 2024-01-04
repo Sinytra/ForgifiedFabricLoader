@@ -21,7 +21,7 @@ import net.fabricmc.loader.api.metadata.ModOrigin;
 import net.fabricmc.loader.impl.discovery.BuiltinMetadataWrapper;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.ModOriginImpl;
-import net.minecraftforge.forgespi.language.IModInfo;
+import net.neoforged.neoforgespi.language.IModInfo;
 
 import java.nio.file.Path;
 import java.util.*;

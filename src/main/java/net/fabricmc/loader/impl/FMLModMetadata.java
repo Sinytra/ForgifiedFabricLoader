@@ -19,7 +19,7 @@ package net.fabricmc.loader.impl;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.*;
 import net.fabricmc.loader.impl.metadata.SimplePerson;
-import net.minecraftforge.forgespi.language.IModInfo;
+import net.neoforged.neoforgespi.language.IModInfo;
 
 import java.util.*;
 import java.util.stream.Stream;

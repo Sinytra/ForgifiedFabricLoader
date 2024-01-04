@@ -1,15 +1,13 @@
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace
-import net.fabricmc.loom.util.srg.SrgMerger
+import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingLayer
+import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingsSpec
+import net.fabricmc.loom.configuration.providers.minecraft.MinecraftMetadataProvider
+import net.fabricmc.loom.util.Constants
+import net.fabricmc.loom.util.download.Download
 import net.fabricmc.loom.util.srg.Tsrg2Writer
 import net.fabricmc.mappingio.MappingReader
-import net.fabricmc.mappingio.adapter.MappingDstNsReorder
-import net.fabricmc.mappingio.adapter.MappingNsCompleter
-import net.fabricmc.mappingio.adapter.MappingNsRenamer
-import net.fabricmc.mappingio.tree.MappingTree
+import net.fabricmc.mappingio.adapter.*
 import net.fabricmc.mappingio.tree.MemoryMappingTree
-import net.minecraftforge.gradle.common.util.RunConfig
-import net.minecraftforge.gradle.mcp.tasks.GenerateSRG
-import net.minecraftforge.srgutils.IMappingFile.Format
 import java.nio.file.FileSystems
 import java.nio.file.StandardOpenOption
 import kotlin.io.path.writeText
@@ -17,12 +15,11 @@ import kotlin.io.path.writeText
 plugins {
     java
     `maven-publish`
-    id("net.minecraftforge.gradle") version "[6.0,6.2)"
     id("me.qoomon.git-versioning") version "6.3.+"
     id("org.cadixdev.licenser") version "0.6.1"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     // Used for mapping tools only, provides TSRG writer on top of mappings-io
-    id("dev.architectury.loom") version "1.2-SNAPSHOT" apply false
+    id("dev.architectury.loom") version "1.4-SNAPSHOT" apply false
 }
 
 val versionMc: String by rootProject
@@ -35,7 +32,8 @@ version = "0.0.0-SNAPSHOT"
 
 gitVersioning.apply {
     rev {
-        version = "\${describe.tag.version.major}.\${describe.tag.version.minor}.\${describe.tag.version.patch.plus.describe.distance}+$versionLoaderUpstream+$versionMc"
+        version =
+            "\${describe.tag.version.major}.\${describe.tag.version.minor}.\${describe.tag.version.patch.plus.describe.distance}+$versionLoaderUpstream+$versionMc"
     }
 }
 
@@ -48,41 +46,9 @@ license {
 val yarnMappings: Configuration by configurations.creating
 val shade: Configuration by configurations.creating
 
-val createObfToMcp by tasks.registering(GenerateSRG::class) {
-    notch = true
-    srg.set(tasks.extractSrg.flatMap { it.output })
-    mappings.set(minecraft.mappings)
-    format.set(Format.TSRG)
-}
-
-val createMappings by tasks.registering(GenerateMergedMappingsTask::class) {
-    inputYarnMappings.set { yarnMappings.singleFile }
-    inputSrgMappings.set(tasks.extractSrg.flatMap { it.output })
-}
-
 java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
     withSourcesJar()
-}
-
-minecraft {
-    mappings("official", versionMc)
-
-    runs {
-        val config = Action<RunConfig> {
-            property("forge.logging.console.level", "debug")
-            property("forge.logging.markers", "REGISTRIES,SCAN,FMLHANDSHAKE")
-            workingDirectory = project.file("run").canonicalPath
-
-            mods {
-                create("fabric_loader") {
-                    sources(sourceSets.main.get())
-                }
-            }
-        }
-
-        create("client", config)
-        create("server", config)
-    }
 }
 
 sourceSets {
@@ -100,17 +66,21 @@ configurations.implementation {
 repositories {
     mavenCentral()
     maven {
-        name = "MinecraftForge"
-        url = uri("https://maven.minecraftforge.net")
-    }
-    maven {
         name = "FabricMC"
         url = uri("https://maven.fabricmc.net")
+    }
+    maven {
+        name = "Mojank"
+        url = uri("https://libraries.minecraft.net/")
+    }
+    maven {
+        name = "NeoForged"
+        url = uri("https://maven.neoforged.net/releases")
     }
 }
 
 dependencies {
-    minecraft(group = "net.minecraftforge", name = "forge", version = "$versionMc-$versionForge")
+    implementation(group = "net.neoforged", name = "neoforge", version = versionForge)
     yarnMappings(group = "net.fabricmc", name = "yarn", version = versionYarn)
 
     shade("net.minecraftforge:srgutils:0.5.4")
@@ -120,6 +90,63 @@ dependencies {
     testCompileOnly("org.jetbrains:annotations:23.0.0")
     // Unit testing for mod metadata
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+}
+
+val downloadMojmaps by tasks.registering {
+    val outputDir = project.layout.buildDirectory.dir(name).get()
+    val outputFile = outputDir.file("mojmap.tsrg")
+    inputs.property("versionMc", versionMc)
+    outputs.file(outputFile)
+    extra["outputFile"] = outputFile.asFile
+
+    doLast {
+        val cache = project.layout.buildDirectory.dir("tmp/$name").get()
+        val provider = MinecraftMetadataProvider(
+            MinecraftMetadataProvider.Options(
+                versionMc,
+                Constants.VERSION_MANIFESTS,
+                Constants.EXPERIMENTAL_VERSIONS,
+                null,
+                cache.file("version_manifest.json").asFile.toPath(),
+                cache.file("experimental_version_manifest.json").asFile.toPath(),
+                cache.file("minecraft-info.json").asFile.toPath()
+            )
+        ) { Download.create(it) }
+
+        val clientMappingsPath = cache.file("mojang/client.txt").asFile.toPath()
+        val serverMappingsPath = cache.file("mojang/server.txt").asFile.toPath()
+
+        val clientMappings = provider.versionMeta.download("client_mappings")
+        Download.create(clientMappings.url)
+            .sha1(clientMappings.sha1)
+            .downloadPath(clientMappingsPath)
+        val serverMappings = provider.versionMeta.download("server_mappings")
+        Download.create(serverMappings.url)
+            .sha1(serverMappings.sha1)
+            .downloadPath(serverMappingsPath)
+
+        val mojMaps = MojangMappingLayer(
+            versionMc,
+            clientMappingsPath,
+            serverMappingsPath,
+            true,
+            project.logger,
+            MojangMappingsSpec.SilenceLicenseOption { true })
+        val mappings = MemoryMappingTree()
+        mojMaps.visit(mappings)
+        outputFile.asFile.toPath().writeText(
+            Tsrg2Writer.serialize(mappings),
+            Charsets.UTF_8,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.TRUNCATE_EXISTING
+        )
+    }
+}
+
+val createMappings by tasks.registering(GenerateMergedMappingsTask::class) {
+    dependsOn(downloadMojmaps)
+    inputYarnMappings.set { yarnMappings.singleFile }
+    inputMojangMappings.set { downloadMojmaps.get().extra["outputFile"] as File }
 }
 
 tasks {
@@ -153,7 +180,6 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            fg.component(this)
         }
     }
 
@@ -177,45 +203,47 @@ open class GenerateMergedMappingsTask : DefaultTask() {
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    val inputSrgMappings: RegularFileProperty = project.objects.fileProperty()
+    val inputMojangMappings: RegularFileProperty = project.objects.fileProperty()
 
     @get:OutputFile
-    val outputFile: RegularFileProperty = project.objects.fileProperty().convention(project.layout.buildDirectory.file("$name/output.tsrg"))
+    val outputFile: RegularFileProperty =
+        project.objects.fileProperty().convention(project.layout.buildDirectory.file("$name/output.tsrg"))
 
     @TaskAction
     fun execute() {
-        // OFFICIAL -> SRG -> INTERMEDIARY
+        // OFFICIAL -> MOJANG -> INTERMEDIARY
         val yarnTree = MemoryMappingTree()
-        val renamed = MappingNsRenamer(yarnTree, mapOf(
-            "left" to MappingsNamespace.OFFICIAL.toString(),
-            "right" to MappingsNamespace.SRG.toString()
+        val renamer = MappingNsRenamer(yarnTree, mapOf(
+            MappingsNamespace.NAMED.toString() to MappingsNamespace.MOJANG.toString()
         ))
-        MappingReader.read(inputSrgMappings.asFile.get().toPath(), renamed)
+        MappingReader.read(inputMojangMappings.get().asFile.toPath(), renamer)
         FileSystems.newFileSystem(inputYarnMappings.asFile.get().toPath()).use {
             val mappings = it.getPath("mappings", "mappings.tiny")
             val selector = MappingDstNsReorder(yarnTree, MappingsNamespace.INTERMEDIARY.toString())
             MappingReader.read(mappings, selector)
         }
 
-        // Complete INTERMEDIARY from OFFICIAL
+        // Filter out entries for which there is no mojang mapping
+        val filtered = MemoryMappingTree()
+        val toOfiSource = MappingSourceNsSwitch(filtered, MappingsNamespace.OFFICIAL.toString())
+        val toMojSource = MappingSourceNsSwitch(toOfiSource, MappingsNamespace.MOJANG.toString(), true)
+        yarnTree.accept(toMojSource)
+
+        // OFFICIAL -> INTERMEDIARY -> MOJANG
         val completed = MemoryMappingTree()
-        val completer = MappingNsCompleter(completed, mapOf(MappingsNamespace.INTERMEDIARY.toString() to MappingsNamespace.OFFICIAL.toString()))
-        // Remove SRG, but also add NAMED because SrgMerger demands it
-        val selector = MappingDstNsReorder(completer, MappingsNamespace.INTERMEDIARY.toString(), MappingsNamespace.NAMED.toString())
-        yarnTree.accept(selector)
+        val reorder = MappingDstNsReorder(completed, MappingsNamespace.INTERMEDIARY.toString(), MappingsNamespace.MOJANG.toString())
+        val completer = MappingNsCompleter(
+            reorder,
+            mapOf(MappingsNamespace.INTERMEDIARY.toString() to MappingsNamespace.OFFICIAL.toString())
+        )
+        filtered.accept(completer)
 
-        val officialTreePath = temporaryDir.resolve("mappings-base.tsrg").toPath()
-        officialTreePath.writeText(Tsrg2Writer.serialize(completed), Charsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
-
-        // OFFICIAL -> SRG -> INTERMEDIARY -> NAMED
-        val mergedTree = SrgMerger.mergeSrg(inputSrgMappings.asFile.get().toPath(), officialTreePath, null, true)
-        @Suppress("INACCESSIBLE_TYPE")
-        mergedTree.classes.forEach { c: MappingTree.ClassMapping -> c.methods.forEach { it.args.clear() } }
-
-        // OFFICIAL -> SRG -> INTERMEDIARY
-        val filteredTree = MemoryMappingTree()
-        val destFiler = MappingDstNsReorder(filteredTree, MappingsNamespace.SRG.toString(), MappingsNamespace.INTERMEDIARY.toString())
-        mergedTree.accept(destFiler)
-        outputFile.get().asFile.toPath().writeText(Tsrg2Writer.serialize(filteredTree), Charsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+        // OFFICIAL -> INTERMEDIARY -> MOJANG
+        outputFile.get().asFile.toPath().writeText(
+            Tsrg2Writer.serialize(completed),
+            Charsets.UTF_8,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.TRUNCATE_EXISTING
+        )
     }
 }

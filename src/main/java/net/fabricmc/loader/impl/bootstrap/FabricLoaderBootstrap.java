@@ -20,8 +20,8 @@ import com.mojang.logging.LogUtils;
 import cpw.mods.modlauncher.api.NamedPath;
 import cpw.mods.modlauncher.serviceapi.ILaunchPluginService;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
-import net.minecraftforge.fml.loading.LoadingModList;
-import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
+import net.neoforged.fml.loading.LoadingModList;
+import net.neoforged.fml.loading.moddiscovery.ModInfo;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 

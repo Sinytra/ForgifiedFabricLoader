@@ -16,8 +16,8 @@
 
 package net.fabricmc.loader.impl.launch;
 
-import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.fml.loading.FMLLoader;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLLoader;
 
 public final class MappingConfiguration {
 	private final String gameId = "minecraft";

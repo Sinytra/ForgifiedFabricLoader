@@ -17,7 +17,7 @@
 package net.fabricmc.loader.impl.launch;
 
 import net.fabricmc.api.EnvType;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 import java.io.IOException;
 import java.io.InputStream;
