@@ -18,9 +18,9 @@ plugins {
     java
     `maven-publish`
     id("net.minecraftforge.gradle") version "[6.0,6.2)"
-    id("me.qoomon.git-versioning") version "6.3.+"
     id("org.cadixdev.licenser") version "0.6.1"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("net.neoforged.gradleutils").version("3.0.0-alpha.10")
     // Used for mapping tools only, provides TSRG writer on top of mappings-io
     id("dev.architectury.loom") version "1.2-SNAPSHOT" apply false
 }
@@ -33,11 +33,14 @@ val versionYarn: String by project
 group = "dev.su5ed.sinytra"
 version = "0.0.0-SNAPSHOT"
 
-gitVersioning.apply {
-    rev {
-        version = "\${describe.tag.version.major}.\${describe.tag.version.minor}.\${describe.tag.version.patch.plus.describe.distance}+$versionLoaderUpstream+$versionMc"
+gradleutils.version {
+    branches {
+        suffixBranch()
+        suffixExemptedBranch("1.20.1")
     }
 }
+version = "${gradleutils.version}+$versionLoaderUpstream+$versionMc"
+println("Version: $version")
 
 license {
     header("HEADER")
