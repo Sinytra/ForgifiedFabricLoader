@@ -167,6 +167,11 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 			}
 		}
 
+		public Builder(String id, Version version) {
+			this.name = this.id = id;
+			this.version = version;
+		}
+
 		public Builder setEnvironment(ModEnvironment environment) {
 			this.environment = environment;
 			return this;
