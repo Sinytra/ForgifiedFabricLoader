@@ -25,13 +25,8 @@ import net.fabricmc.loader.impl.metadata.EntrypointMetadata;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Supplier;
 
 public final class EntrypointStorage {
 	interface Entry {
@@ -98,11 +93,11 @@ public final class EntrypointStorage {
 
 	private static final class NewEntry implements Entry {
 		private final ModContainerImpl mod;
-		private final LanguageAdapter adapter;
+		private final Supplier<LanguageAdapter> adapter;
 		private final String value;
 		private final Map<Class<?>, Object> instanceMap;
 
-		NewEntry(ModContainerImpl mod, LanguageAdapter adapter, String value) {
+		NewEntry(ModContainerImpl mod, Supplier<LanguageAdapter> adapter, String value) {
 			this.mod = mod;
 			this.adapter = adapter;
 			this.value = value;
@@ -121,7 +116,7 @@ public final class EntrypointStorage {
 			T ret = (T) instanceMap.get(type);
 
 			if (ret == null) {
-				ret = adapter.create(mod, value, type);
+				ret = adapter.get().create(mod, value, type);
 				assert ret != null;
 				T prev = (T) instanceMap.putIfAbsent(type, ret);
 				if (prev != null) ret = prev;
@@ -173,7 +168,7 @@ public final class EntrypointStorage {
 		getOrCreateEntries("server").add(oe);
 	}
 
-	public void add(ModContainerImpl modContainer, String key, EntrypointMetadata metadata, Map<String, LanguageAdapter> adapterMap) throws Exception {
+	public void add(ModContainerImpl modContainer, String key, EntrypointMetadata metadata, Map<String, Supplier<LanguageAdapter>> adapterMap) throws Exception {
 		if (!adapterMap.containsKey(metadata.getAdapter())) {
 			throw new Exception("Could not find adapter '" + metadata.getAdapter() + "' (mod " + modContainer.getMetadata().getId() + "!)");
 		}

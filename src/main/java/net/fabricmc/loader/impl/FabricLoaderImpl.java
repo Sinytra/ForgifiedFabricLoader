@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.impl;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import cpw.mods.modlauncher.ArgumentHandler;
@@ -41,6 +42,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @SuppressWarnings("deprecation")
 public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
@@ -50,7 +52,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
     private final List<ModContainerImpl> mods = new ArrayList<>();
     private final Multimap<String, String> modAliases = HashMultimap.create();
 
-    private final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
+    private final Map<String, Supplier<LanguageAdapter>> adapterMap = new HashMap<>();
     private final EntrypointStorage entrypointStorage = new EntrypointStorage();
 
     private final ObjectShare objectShare = new ObjectShareImpl();
@@ -229,7 +231,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
     }
 
     private void setupLanguageAdapters() {
-        adapterMap.put("default", DefaultLanguageAdapter.INSTANCE);
+        adapterMap.put("default", () -> DefaultLanguageAdapter.INSTANCE);
 
         for (ModContainerImpl mod : mods) {
             // add language adapters
@@ -238,11 +240,14 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
                     throw new RuntimeException("Duplicate language adapter key: " + laEntry.getKey() + "! (" + laEntry.getValue() + ", " + adapterMap.get(laEntry.getKey()).getClass().getName() + ")");
                 }
 
-                try {
-                    adapterMap.put(laEntry.getKey(), (LanguageAdapter) Class.forName(laEntry.getValue(), true, Thread.currentThread().getContextClassLoader()).getDeclaredConstructor().newInstance());
-                } catch (Exception e) {
-                    throw new RuntimeException("Failed to instantiate language adapter: " + laEntry.getKey(), e);
-                }
+                Supplier<LanguageAdapter> supplier = Suppliers.memoize(() -> {
+                    try {
+                        return (LanguageAdapter) Class.forName(laEntry.getValue(), true, Thread.currentThread().getContextClassLoader()).getDeclaredConstructor().newInstance();
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to instantiate language adapter: " + laEntry.getKey(), e);
+                    }
+                });
+                adapterMap.put(laEntry.getKey(), supplier);
             }
         }
     }
