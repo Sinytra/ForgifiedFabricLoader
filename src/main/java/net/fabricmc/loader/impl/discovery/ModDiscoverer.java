@@ -93,6 +93,17 @@ public final class ModDiscoverer {
 
 		// add builtin mods
 //		for (BuiltinMod mod : loader.getGameProvider().getBuiltinMods()) {
+//			if (!(mod.metadata.getVersion() instanceof SemanticVersion)) {
+//				String error = String.format("%s uses the non-semantic version %s, which doesn't support range comparisons and may cause mod dependencies against it to fail unexpectedly. Consider updating Fabric Loader or explicitly specifying the game version with the fabric.gameVersion system property.",
+//						mod.metadata.getId(), mod.metadata.getVersion());
+//
+//				if (loader.isDevelopmentEnvironment()) { // fail hard in-dev
+//					throw new FormattedException("Invalid game version", error);
+//				} else {
+//					Log.warn(LogCategory.GENERAL, error);
+//				}
+//			}
+//
 //			ModCandidate candidate = ModCandidate.createBuiltin(mod, versionOverrides, depOverrides);
 //			candidates.add(MetadataVerifier.verifyIndev(candidate, loader.isDevelopmentEnvironment()));
 //		}

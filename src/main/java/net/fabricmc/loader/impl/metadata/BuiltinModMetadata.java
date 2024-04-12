@@ -19,7 +19,6 @@ package net.fabricmc.loader.impl.metadata;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.*;
-import net.fabricmc.loader.impl.util.version.VersionParser;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -161,7 +160,7 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 			this.name = this.id = id;
 
 			try {
-				this.version = VersionParser.parseSemantic(version);
+				this.version = Version.parse(version);
 			} catch (VersionParsingException e) {
 				throw new RuntimeException(e);
 			}
