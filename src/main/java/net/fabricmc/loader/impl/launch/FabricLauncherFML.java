@@ -17,6 +17,7 @@
 package net.fabricmc.loader.impl.launch;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.neoforged.fml.loading.FMLEnvironment;
 
 import java.io.IOException;
@@ -83,7 +84,7 @@ public class FabricLauncherFML extends FabricLauncherBase {
 
     @Override
     public String getTargetNamespace() {
-        return FMLEnvironment.naming;
+        return LoaderUtil.RUNTIME_MAPPING;
     }
 
     @Override

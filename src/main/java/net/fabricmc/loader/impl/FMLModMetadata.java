@@ -24,7 +24,7 @@ import net.neoforged.neoforgespi.language.IModInfo;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static cpw.mods.modlauncher.api.LamdbaExceptionUtils.uncheck;
+import static cpw.mods.modlauncher.api.LambdaExceptionUtils.uncheck;
 
 public class FMLModMetadata implements ModMetadata {
     private final IModInfo modInfo;

@@ -17,6 +17,7 @@
 package net.fabricmc.loader.impl;
 
 import net.fabricmc.loader.api.MappingResolver;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.minecraftforge.srgutils.IMappingFile;
 import net.minecraftforge.srgutils.INamedMappingFile;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -33,7 +34,7 @@ public class MappingResolverImpl implements MappingResolver {
      * We ship this file in our jar, by default it contains OFFICIAL -> SRG -> INTERMEDIARY mappings
      */
     private static final String MAPPINGS_RESOURCE = "/mappings.tsrg";
-    private static final String FML_NAMESPACE = FMLEnvironment.naming;
+    private static final String FML_NAMESPACE = LoaderUtil.RUNTIME_MAPPING;
 
     private final INamedMappingFile mappings;
 

@@ -23,6 +23,8 @@ import java.nio.file.Path;
 import java.util.Locale;
 
 public final class LoaderUtil {
+	public static final String RUNTIME_MAPPING = "mojang";
+
 	public static String getClassFileName(String className) {
 		return className.replace('.', '/').concat(".class");
 	}

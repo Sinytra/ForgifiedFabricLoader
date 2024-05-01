@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.impl.launch;
 
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
 
@@ -44,7 +45,7 @@ public final class MappingConfiguration {
 //	}
 
 	public String getTargetNamespace() {
-		return FMLEnvironment.naming;
+		return LoaderUtil.RUNTIME_MAPPING;
 	}
 
 	public boolean requiresPackageAccessHack() {
