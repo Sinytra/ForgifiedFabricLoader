@@ -4,12 +4,14 @@ import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingsS
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftMetadataProvider
 import net.fabricmc.loom.util.Constants
 import net.fabricmc.loom.util.download.Download
+import net.fabricmc.loom.util.download.DownloadBuilder
 import net.fabricmc.loom.util.srg.Tsrg2Writer
 import net.fabricmc.mappingio.MappingReader
 import net.fabricmc.mappingio.adapter.*
 import net.fabricmc.mappingio.tree.MemoryMappingTree
 import java.nio.file.FileSystems
 import java.nio.file.StandardOpenOption
+import java.util.function.Function
 import kotlin.io.path.writeText
 
 plugins {
@@ -19,7 +21,7 @@ plugins {
     id("org.cadixdev.licenser") version "0.6.1"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     // Used for mapping tools only, provides TSRG writer on top of mappings-io
-    id("dev.architectury.loom") version "1.4-SNAPSHOT" apply false
+    id("dev.architectury.loom") version "1.6-SNAPSHOT" apply false
 }
 
 val versionMc: String by rootProject
@@ -47,7 +49,7 @@ val yarnMappings: Configuration by configurations.creating
 val shade: Configuration by configurations.creating
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
     withSourcesJar()
 }
 
@@ -101,7 +103,7 @@ val downloadMojmaps by tasks.registering {
 
     doLast {
         val cache = project.layout.buildDirectory.dir("tmp/$name").get()
-        val provider = MinecraftMetadataProvider(
+        val provider = MinecraftMetadataProvider::class.java.declaredConstructors[0].apply { isAccessible = true }.newInstance(
             MinecraftMetadataProvider.Options(
                 versionMc,
                 Constants.VERSION_MANIFESTS,
@@ -110,8 +112,9 @@ val downloadMojmaps by tasks.registering {
                 cache.file("version_manifest.json").asFile.toPath(),
                 cache.file("experimental_version_manifest.json").asFile.toPath(),
                 cache.file("minecraft-info.json").asFile.toPath()
-            )
-        ) { Download.create(it) }
+            ),
+            Function<String, DownloadBuilder> { Download.create(it) }
+        ) as MinecraftMetadataProvider
 
         val clientMappingsPath = cache.file("mojang/client.txt").asFile.toPath()
         val serverMappingsPath = cache.file("mojang/server.txt").asFile.toPath()
