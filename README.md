@@ -33,7 +33,7 @@ This is going to be the case for most developers. See
 the [Forgified Fabric API](https://github.com/Sinytra/ForgifiedFabricAPI) repository for installation instructions.
 
 If you wish to depend on the Forgified Fabric Loader alone, it is published at `https://maven.su5ed.dev/releases`
-under the `dev.su5ed.sinytra:fabric-loader` identifier. The versioning scheme follows
+under the `org.sinytra:fabric-loader` identifier. The versioning scheme follows
 a `{impl_version}+{upstream_version}+{mc_version}` pattern.
 
 #### NESTED JARS NOTE

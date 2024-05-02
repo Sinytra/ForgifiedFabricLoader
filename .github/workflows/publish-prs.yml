@@ -23,7 +23,7 @@ jobs:
     if: false # Option not enabled when the workflows were generated
     uses: neoforged/actions/.github/workflows/publish-prs.yml@main
     with:
-      artifact_base_path: dev/su5ed/sinytra/fabric-loader/
+      artifact_base_path: org/sinytra/fabric-loader/
     secrets:
       PR_PUBLISHING_GH_APP_ID: ${{ secrets.PR_PUBLISHING_GH_APP_ID }}
       PR_PUBLISHING_GH_APP_KEY: ${{ secrets.PR_PUBLISHING_GH_APP_KEY }}

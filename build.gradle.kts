@@ -29,13 +29,13 @@ val versionForge: String by rootProject
 val versionLoaderUpstream: String by rootProject
 val versionYarn: String by project
 
-group = "dev.su5ed.sinytra"
+group = "org.sinytra"
 version = "0.0.0-SNAPSHOT"
 
 gradleutils.version {
     branches {
         suffixBranch()
-        suffixExemptedBranch("1.20.1")
+        suffixExemptedBranch(versionMc)
     }
 }
 version = "${gradleutils.version}+$versionLoaderUpstream+$versionMc"
@@ -159,7 +159,7 @@ tasks {
         provider.configure {
             from(createMappings.flatMap { it.outputFile }) { rename { "mappings.tsrg" } }
             manifest.attributes(
-                "FMLModType" to "LANGPROVIDER",
+                "FMLModType" to "LIBRARY",
                 "Automatic-Module-Name" to "net.fabricmc.loader",
                 "Implementation-Version" to archiveVersion.get()
             )
