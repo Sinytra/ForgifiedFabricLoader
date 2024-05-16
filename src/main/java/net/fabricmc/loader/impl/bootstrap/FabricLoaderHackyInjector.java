@@ -19,17 +19,19 @@ package net.fabricmc.loader.impl.bootstrap;
 import cpw.mods.modlauncher.LaunchPluginHandler;
 import cpw.mods.modlauncher.Launcher;
 import cpw.mods.modlauncher.serviceapi.ILaunchPluginService;
-import net.neoforged.neoforgespi.language.IModLanguageProvider;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModLoadingException;
+import net.neoforged.fml.loading.BuiltInLanguageLoader;
+import net.neoforged.neoforgespi.language.IModInfo;
 import net.neoforged.neoforgespi.language.ModFileScanData;
 
 import java.lang.reflect.Field;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * Terribly ugly hack to bootstrap fml mods into fabric loader before modloading starts, in a way that can be loaded from JarJar.
  */
-public class FabricLoaderHackyInjector implements IModLanguageProvider {
+public class FabricLoaderHackyInjector extends BuiltInLanguageLoader {
     public static final String NAME = "__fabric_loader_bootstrap";
 
     public FabricLoaderHackyInjector() {
@@ -54,7 +56,7 @@ public class FabricLoaderHackyInjector implements IModLanguageProvider {
     }
 
     @Override
-    public Consumer<ModFileScanData> getFileVisitor() {
-        return data -> {};
+    public ModContainer loadMod(IModInfo info, ModFileScanData modFileScanResults, ModuleLayer layer) throws ModLoadingException {
+        throw new UnsupportedOperationException();
     }
 }
