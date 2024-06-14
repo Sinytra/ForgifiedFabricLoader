@@ -21,7 +21,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("net.neoforged.gradleutils").version("3.0.0-alpha.10")
     // Used for mapping tools only, provides TSRG writer on top of mappings-io
-    id("dev.architectury.loom") version "1.6-SNAPSHOT" apply false
+    id("dev.architectury.loom") version "1.6-SNAPSHOT"
 }
 
 val versionMc: String by rootProject
@@ -36,6 +36,7 @@ gradleutils.version {
     branches {
         suffixBranch()
         suffixExemptedBranch(versionMc)
+        suffixExemptedBranch("$versionMc.x")
     }
 }
 version = "${gradleutils.version}+$versionLoaderUpstream+$versionMc"
@@ -81,18 +82,12 @@ repositories {
         name = "NeoForged"
         url = uri("https://maven.neoforged.net/releases")
     }
-    maven {
-        name = "Maven for PR #1076" // https://github.com/neoforged/NeoForge/pull/1076
-        url = uri("https://prmaven.neoforged.net/NeoForge/pr1076")
-        content {
-            includeModule("net.neoforged", "testframework")
-            includeModule("net.neoforged", "neoforge")
-        }
-    }
 }
 
 dependencies {
-    implementation(group = "net.neoforged", name = "neoforge", version = versionForge)
+    minecraft(group = "com.mojang", name = "minecraft", version = versionMc)
+    mappings(loom.officialMojangMappings())
+    neoForge(group = "net.neoforged", name = "neoforge", version = versionForge)
     yarnMappings(group = "net.fabricmc", name = "yarn", version = versionYarn)
 
     shade("net.minecraftforge:srgutils:0.5.4")
