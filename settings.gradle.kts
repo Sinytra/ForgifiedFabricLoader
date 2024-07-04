@@ -19,5 +19,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = "fabric-loader"
+rootProject.name = "forgified-fabric-loader"
 

@@ -64,8 +64,19 @@ sourceSets {
     }
 }
 
-configurations.implementation {
-    extendsFrom(shade)
+configurations {
+    implementation {
+        extendsFrom(shade)
+    }
+
+    runtimeElements {
+        setExtendsFrom(setOf())
+
+        outgoing {
+            artifacts.clear()
+            artifact(tasks.shadowJar)
+        }
+    }
 }
 
 repositories {
@@ -176,10 +187,6 @@ tasks {
         archiveClassifier.set("full")
     }
 
-    withType<GenerateModuleMetadata> {
-        isEnabled = false
-    }
-
     assemble {
         dependsOn(shadowJar)
     }
@@ -222,9 +229,11 @@ open class GenerateMergedMappingsTask : DefaultTask() {
     fun execute() {
         // OFFICIAL -> MOJANG -> INTERMEDIARY
         val yarnTree = MemoryMappingTree()
-        val renamer = MappingNsRenamer(yarnTree, mapOf(
-            MappingsNamespace.NAMED.toString() to MappingsNamespace.MOJANG.toString()
-        ))
+        val renamer = MappingNsRenamer(
+            yarnTree, mapOf(
+                MappingsNamespace.NAMED.toString() to MappingsNamespace.MOJANG.toString()
+            )
+        )
         MappingReader.read(inputMojangMappings.get().asFile.toPath(), renamer)
         FileSystems.newFileSystem(inputYarnMappings.asFile.get().toPath()).use {
             val mappings = it.getPath("mappings", "mappings.tiny")
@@ -240,7 +249,11 @@ open class GenerateMergedMappingsTask : DefaultTask() {
 
         // OFFICIAL -> INTERMEDIARY -> MOJANG
         val completed = MemoryMappingTree()
-        val reorder = MappingDstNsReorder(completed, MappingsNamespace.INTERMEDIARY.toString(), MappingsNamespace.MOJANG.toString())
+        val reorder = MappingDstNsReorder(
+            completed,
+            MappingsNamespace.INTERMEDIARY.toString(),
+            MappingsNamespace.MOJANG.toString()
+        )
         val completer = MappingNsCompleter(
             reorder,
             mapOf(MappingsNamespace.INTERMEDIARY.toString() to MappingsNamespace.OFFICIAL.toString())
