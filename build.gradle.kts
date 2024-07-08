@@ -183,7 +183,6 @@ tasks {
 
     shadowJar {
         configurations = listOf(shade)
-        relocate("net.minecraftforge.srgutils", "reloc.net.minecraftforge.srgutils")
         archiveClassifier.set("full")
     }
 
