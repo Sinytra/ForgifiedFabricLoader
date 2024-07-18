@@ -244,7 +244,8 @@ open class GenerateMergedMappingsTask : DefaultTask() {
         val filtered = MemoryMappingTree()
         val toOfiSource = MappingSourceNsSwitch(filtered, MappingsNamespace.OFFICIAL.toString())
         val toMojSource = MappingSourceNsSwitch(toOfiSource, MappingsNamespace.MOJANG.toString(), true)
-        yarnTree.accept(toMojSource)
+        val toInterSource = MappingSourceNsSwitch(toMojSource, MappingsNamespace.INTERMEDIARY.toString(), true)
+        yarnTree.accept(toInterSource)
 
         // OFFICIAL -> INTERMEDIARY -> MOJANG
         val completed = MemoryMappingTree()
