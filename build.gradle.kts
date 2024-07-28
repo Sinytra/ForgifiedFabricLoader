@@ -6,8 +6,11 @@ import net.fabricmc.loom.util.Constants
 import net.fabricmc.loom.util.download.Download
 import net.fabricmc.loom.util.download.DownloadBuilder
 import net.fabricmc.loom.util.srg.Tsrg2Writer
+import net.fabricmc.lorenztiny.TinyMappingsWriter
 import net.fabricmc.mappingio.MappingReader
+import net.fabricmc.mappingio.MappingWriter
 import net.fabricmc.mappingio.adapter.*
+import net.fabricmc.mappingio.format.MappingFormat
 import net.fabricmc.mappingio.tree.MemoryMappingTree
 import java.nio.file.FileSystems
 import java.nio.file.StandardOpenOption
@@ -169,10 +172,23 @@ val createMappings by tasks.registering(GenerateMergedMappingsTask::class) {
     inputMojangMappings.set { downloadMojmaps.get().extra["outputFile"] as File }
 }
 
+val createTinyMappings by tasks.registering {
+    dependsOn(createMappings)
+    val output = layout.buildDirectory.dir(name).get().file("output.tiny")
+    outputs.file(output)
+
+    doFirst { 
+        val mappings = MemoryMappingTree()
+        MappingReader.read(createMappings.get().outputFile.get().asFile.toPath(), mappings)
+        mappings.accept(MappingWriter.create(output.asFile.toPath(), MappingFormat.TINY_FILE))
+    }
+}
+
 tasks {
     setOf(jar, shadowJar).forEach { provider ->
         provider.configure {
             from(createMappings.flatMap { it.outputFile }) { rename { "mappings.tsrg" } }
+            from(createTinyMappings.map { it.outputs.files.singleFile }) { rename { "mappings/mappings.tiny" } }
             manifest.attributes(
                 "FMLModType" to "LIBRARY",
                 "Automatic-Module-Name" to "net.fabricmc.loader",
