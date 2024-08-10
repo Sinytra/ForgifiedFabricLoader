@@ -2,7 +2,6 @@ import net.fabricmc.loom.api.mappings.layered.MappingsNamespace
 import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingLayer
 import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingsSpec
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftMetadataProvider
-import net.fabricmc.loom.util.Constants
 import net.fabricmc.loom.util.download.Download
 import net.fabricmc.loom.util.download.DownloadBuilder
 import net.fabricmc.loom.util.srg.Tsrg2Writer
@@ -22,7 +21,7 @@ plugins {
     id("org.cadixdev.licenser") version "0.6.1"
     id("net.neoforged.gradleutils").version("3.0.0-alpha.10")
     // Used for mapping tools only, provides TSRG writer on top of mappings-io
-    id("dev.architectury.loom") version "1.6-SNAPSHOT"
+    id("dev.architectury.loom") version "1.7-SNAPSHOT"
 }
 
 val versionMc: String by rootProject
@@ -106,15 +105,7 @@ val downloadMojmaps by tasks.registering {
         val cache = project.layout.buildDirectory.dir("tmp/$name").get()
         val provider =
             MinecraftMetadataProvider::class.java.declaredConstructors[0].apply { isAccessible = true }.newInstance(
-                MinecraftMetadataProvider.Options(
-                    versionMc,
-                    Constants.VERSION_MANIFESTS,
-                    Constants.EXPERIMENTAL_VERSIONS,
-                    null,
-                    cache.file("version_manifest.json").asFile.toPath(),
-                    cache.file("experimental_version_manifest.json").asFile.toPath(),
-                    cache.file("minecraft-info.json").asFile.toPath()
-                ),
+                MinecraftMetadataProvider.Options.create(versionMc, project),
                 Function<String, DownloadBuilder> { Download.create(it) }
             ) as MinecraftMetadataProvider
 
