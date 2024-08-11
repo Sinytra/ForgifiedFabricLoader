@@ -36,7 +36,7 @@ gradleutils.version {
     branches {
         suffixBranch()
         suffixExemptedBranch(versionMc)
-        suffixExemptedBranch("$versionMc.x")
+        suffixExemptedBranch("1.21.x")
     }
 }
 version = "${gradleutils.version}+$versionLoaderUpstream+$versionMc"
