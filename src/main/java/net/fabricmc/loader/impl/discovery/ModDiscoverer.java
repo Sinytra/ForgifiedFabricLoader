@@ -58,11 +58,11 @@ public final class ModDiscoverer {
 		candidateFinders.add(f);
 	}
 
-	public List<ModCandidate> discoverMods(FabricLoaderImpl loader, Map<String, Set<ModCandidate>> envDisabledModsOut) throws ModResolutionException {
+	public List<ModCandidateImpl> discoverMods(FabricLoaderImpl loader, Map<String, Set<ModCandidateImpl>> envDisabledModsOut) throws ModResolutionException {
 		long startTime = System.nanoTime();
 		ForkJoinPool pool = new ForkJoinPool();
 		Set<Path> processedPaths = new HashSet<>(); // suppresses duplicate paths
-		List<Future<ModCandidate>> futures = new ArrayList<>();
+		List<Future<ModCandidateImpl>> futures = new ArrayList<>();
 
 		ModCandidateConsumer taskSubmitter = (paths, requiresRemap) -> {
 			if (paths.size() == 1) {
@@ -89,11 +89,11 @@ public final class ModDiscoverer {
 			finder.findCandidates(taskSubmitter);
 		}
 
-		List<ModCandidate> candidates = new ArrayList<>();
+		List<ModCandidateImpl> candidates = new ArrayList<>();
 
 		// add builtin mods
 //		for (BuiltinMod mod : loader.getGameProvider().getBuiltinMods()) {
-//			ModCandidate candidate = ModCandidate.createBuiltin(mod, versionOverrides, depOverrides);
+//			ModCandidateImpl candidate = ModCandidateImpl.createBuiltin(mod, versionOverrides, depOverrides);
 //			candidates.add(MetadataVerifier.verifyIndev(candidate, loader.isDevelopmentEnvironment()));
 //		}
 
@@ -110,13 +110,13 @@ public final class ModDiscoverer {
 
 			pool.awaitTermination(timeout, TimeUnit.SECONDS);
 
-			for (Future<ModCandidate> future : futures) {
+			for (Future<ModCandidateImpl> future : futures) {
 				if (!future.isDone()) {
 					throw new TimeoutException();
 				}
 
 				try {
-					ModCandidate candidate = future.get();
+					ModCandidateImpl candidate = future.get();
 					if (candidate != null) candidates.add(candidate);
 				} catch (ExecutionException e) {
 					exception = ExceptionUtil.gatherExceptions(e, exception, exc -> new ModResolutionException("Mod discovery failed!", exc));
@@ -124,13 +124,13 @@ public final class ModDiscoverer {
 			}
 
 			for (NestedModInitData data : nestedModInitDatas) {
-				for (Future<ModCandidate> future : data.futures) {
+				for (Future<ModCandidateImpl> future : data.futures) {
 					if (!future.isDone()) {
 						throw new TimeoutException();
 					}
 
 					try {
-						ModCandidate candidate = future.get();
+						ModCandidateImpl candidate = future.get();
 						if (candidate != null) data.target.add(candidate);
 					} catch (ExecutionException e) {
 						exception = ExceptionUtil.gatherExceptions(e, exception, exc -> new ModResolutionException("Mod discovery failed!", exc));
@@ -151,15 +151,15 @@ public final class ModDiscoverer {
 
 		// gather all mods (root+nested), initialize parent data
 
-		Set<ModCandidate> ret = Collections.newSetFromMap(new IdentityHashMap<>(candidates.size() * 2));
-		Queue<ModCandidate> queue = new ArrayDeque<>(candidates);
-		ModCandidate mod;
+		Set<ModCandidateImpl> ret = Collections.newSetFromMap(new IdentityHashMap<>(candidates.size() * 2));
+		Queue<ModCandidateImpl> queue = new ArrayDeque<>(candidates);
+		ModCandidateImpl mod;
 
 		while ((mod = queue.poll()) != null) {
 			if (mod.getMetadata().loadsInEnvironment(envType)) {
 				if (!ret.add(mod)) continue;
 
-				for (ModCandidate child : mod.getNestedMods()) {
+				for (ModCandidateImpl child : mod.getNestedMods()) {
 					if (child.addParent(mod)) {
 						queue.add(child);
 					}
@@ -176,16 +176,16 @@ public final class ModDiscoverer {
 		return new ArrayList<>(ret);
 	}
 
-	private ModCandidate createJavaMod() {
+	private ModCandidateImpl createJavaMod() {
 		ModMetadata metadata = new BuiltinModMetadata.Builder("java", System.getProperty("java.specification.version").replaceFirst("^1\\.", ""))
 				.setName(System.getProperty("java.vm.name"))
 				.build();
 		BuiltinMod builtinMod = new BuiltinMod(Collections.singletonList(Paths.get(System.getProperty("java.home"))), metadata);
 
-		return ModCandidate.createBuiltin(builtinMod, versionOverrides, depOverrides);
+		return ModCandidateImpl.createBuiltin(builtinMod, versionOverrides, depOverrides);
 	}
 
-	final class ModScanTask extends RecursiveTask<ModCandidate> {
+	final class ModScanTask extends RecursiveTask<ModCandidateImpl> {
 		private final List<Path> paths;
 		private final String localPath;
 		private final RewindableInputStream is;
@@ -208,7 +208,7 @@ public final class ModDiscoverer {
 		}
 
 		@Override
-		protected ModCandidate compute() {
+		protected ModCandidateImpl compute() {
 			if (is != null) { // nested jar
 				try {
 					return computeJarStream();
@@ -220,7 +220,7 @@ public final class ModDiscoverer {
 			} else { // regular classes-dir or jar
 				try {
 					for (Path path : paths) {
-						final ModCandidate candidate;
+						final ModCandidateImpl candidate;
 
 						if (Files.isDirectory(path)) {
 							candidate = computeDir(path);
@@ -242,7 +242,7 @@ public final class ModDiscoverer {
 			}
 		}
 
-		private ModCandidate computeDir(Path path) throws IOException, ParseMetadataException {
+		private ModCandidateImpl computeDir(Path path) throws IOException, ParseMetadataException {
 			Path modJson = path.resolve("fabric.mod.json");
 			if (!Files.exists(modJson)) return null;
 
@@ -252,10 +252,10 @@ public final class ModDiscoverer {
 				metadata = parseMetadata(is, path.toString());
 			}
 
-			return ModCandidate.createPlain(paths, metadata, requiresRemap, Collections.emptyList());
+			return ModCandidateImpl.createPlain(paths, metadata, requiresRemap, Collections.emptyList());
 		}
 
-		private ModCandidate computeJarFile(Path path) throws IOException, ParseMetadataException {
+		private ModCandidateImpl computeJarFile(Path path) throws IOException, ParseMetadataException {
 			try (ZipFile zf = new ZipFile(path.toFile())) {
 				ZipEntry entry = zf.getEntry("fabric.mod.json");
 				if (entry == null) return null;
@@ -267,7 +267,7 @@ public final class ModDiscoverer {
 				}
 
 				if (!metadata.loadsInEnvironment(envType)) {
-					return ModCandidate.createPlain(paths, metadata, requiresRemap, Collections.emptyList());
+					return ModCandidateImpl.createPlain(paths, metadata, requiresRemap, Collections.emptyList());
 				}
 
 				List<ModScanTask> nestedModTasks;
@@ -311,7 +311,7 @@ public final class ModDiscoverer {
 					}
 				}
 
-				List<ModCandidate> nestedMods;
+				List<ModCandidateImpl> nestedMods;
 
 				if (nestedModTasks.isEmpty()) {
 					nestedMods = Collections.emptyList();
@@ -320,11 +320,11 @@ public final class ModDiscoverer {
 					nestedModInitDatas.add(new NestedModInitData(nestedModTasks, nestedMods));
 				}
 
-				return ModCandidate.createPlain(paths, metadata, requiresRemap, nestedMods);
+				return ModCandidateImpl.createPlain(paths, metadata, requiresRemap, nestedMods);
 			}
 		}
 
-		private ModCandidate computeJarStream() throws IOException, ParseMetadataException {
+		private ModCandidateImpl computeJarStream() throws IOException, ParseMetadataException {
 			LoaderModMetadata metadata = null;
 			ZipEntry entry;
 
@@ -340,7 +340,7 @@ public final class ModDiscoverer {
 			if (metadata == null) return null;
 
 			if (!metadata.loadsInEnvironment(envType)) {
-				return ModCandidate.createNested(localPath, hash, metadata, requiresRemap, Collections.emptyList());
+				return ModCandidateImpl.createNested(localPath, hash, metadata, requiresRemap, Collections.emptyList());
 			}
 
 			Collection<NestedJarEntry> nestedJars = metadata.getJars();
@@ -389,7 +389,7 @@ public final class ModDiscoverer {
 				}
 			}
 
-			List<ModCandidate> nestedMods;
+			List<ModCandidateImpl> nestedMods;
 
 			if (nestedModTasks.isEmpty()) {
 				nestedMods = Collections.emptyList();
@@ -398,7 +398,7 @@ public final class ModDiscoverer {
 				nestedModInitDatas.add(new NestedModInitData(nestedModTasks, nestedMods));
 			}
 
-			ModCandidate ret = ModCandidate.createNested(localPath, hash, metadata, requiresRemap, nestedMods);
+			ModCandidateImpl ret = ModCandidateImpl.createNested(localPath, hash, metadata, requiresRemap, nestedMods);
 			ret.setData(is.getBuffer());
 
 			return ret;
@@ -414,7 +414,7 @@ public final class ModDiscoverer {
 			ZipEntry entry;
 
 			while ((entry = entrySource.getNextEntry()) != null) {
-				long hash = ModCandidate.hash(entry);
+				long hash = ModCandidateImpl.hash(entry);
 				ModScanTask task = jijDedupMap.get(hash);
 
 				if (task == null) {
@@ -525,10 +525,10 @@ public final class ModDiscoverer {
 	}
 
 	private static class NestedModInitData {
-		final List<? extends Future<ModCandidate>> futures;
-		final List<ModCandidate> target;
+		final List<? extends Future<ModCandidateImpl>> futures;
+		final List<ModCandidateImpl> target;
 
-		NestedModInitData(List<? extends Future<ModCandidate>> futures, List<ModCandidate> target) {
+		NestedModInitData(List<? extends Future<ModCandidateImpl>> futures, List<ModCandidateImpl> target) {
 			this.futures = futures;
 			this.target = target;
 		}
