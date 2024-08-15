@@ -36,6 +36,8 @@ public final class EntrypointStorage {
 		ModContainerImpl getModContainer();
 		
 		Collection<Object> getInstances();
+        
+        String getDefinition();
 	}
 
 	@SuppressWarnings("deprecation")
@@ -89,6 +91,11 @@ public final class EntrypointStorage {
 		public Collection<Object> getInstances() {
 			return List.of(object);
 		}
+        
+        @Override
+        public String getDefinition() {
+            return value;
+        }
 	}
 
 	private static final class NewEntry implements Entry {
@@ -139,6 +146,11 @@ public final class EntrypointStorage {
 		public Collection<Object> getInstances() {
 			return instanceMap.values();
 		}
+
+        @Override
+        public String getDefinition() {
+            return value;
+        }
 	}
 
 	private final Map<String, List<Entry>> entryMap = new HashMap<>();
