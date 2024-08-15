@@ -34,6 +34,8 @@ public final class EntrypointStorage {
 		boolean isOptional();
 
 		ModContainerImpl getModContainer();
+
+		String getDefinition();
 		
 		Collection<Object> getInstances();
 	}
@@ -86,6 +88,11 @@ public final class EntrypointStorage {
 		}
 
 		@Override
+		public String getDefinition() {
+			return value;
+		}
+
+		@Override
 		public Collection<Object> getInstances() {
 			return List.of(object);
 		}
@@ -133,6 +140,11 @@ public final class EntrypointStorage {
 		@Override
 		public ModContainerImpl getModContainer() {
 			return mod;
+		}
+
+		@Override
+		public String getDefinition() {
+			return value;
 		}
 
 		@Override
