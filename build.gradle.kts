@@ -66,6 +66,7 @@ val createMappings by tasks.registering(GenerateMergedMappingsTask::class) {
 
 java {
     withSourcesJar()
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 minecraft {
