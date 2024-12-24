@@ -29,10 +29,10 @@ import java.util.Objects;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 
-abstract class CustomValueImpl implements CustomValue {
-	static final CustomValue BOOLEAN_TRUE = new BooleanImpl(true);
-	static final CustomValue BOOLEAN_FALSE = new BooleanImpl(false);
-	static final CustomValue NULL = new NullImpl();
+public abstract class CustomValueImpl implements CustomValue {
+	public static final CustomValue BOOLEAN_TRUE = new BooleanImpl(true);
+	public static final CustomValue BOOLEAN_FALSE = new BooleanImpl(false);
+	public static final CustomValue NULL = new NullImpl();
 
 	public static CustomValue readCustomValue(JsonReader reader) throws IOException, ParseMetadataException {
 		switch (reader.peek()) {
@@ -125,10 +125,10 @@ abstract class CustomValueImpl implements CustomValue {
 		}
 	}
 
-	private static final class ObjectImpl extends CustomValueImpl implements CvObject {
+	public static final class ObjectImpl extends CustomValueImpl implements CvObject {
 		private final Map<String, CustomValue> entries;
 
-		ObjectImpl(Map<String, CustomValue> entries) {
+		public ObjectImpl(Map<String, CustomValue> entries) {
 			this.entries = Collections.unmodifiableMap(entries);
 		}
 
@@ -158,10 +158,10 @@ abstract class CustomValueImpl implements CustomValue {
 		}
 	}
 
-	private static final class ArrayImpl extends CustomValueImpl implements CvArray {
+	public static final class ArrayImpl extends CustomValueImpl implements CvArray {
 		private final List<CustomValue> entries;
 
-		ArrayImpl(List<CustomValue> entries) {
+		public ArrayImpl(List<CustomValue> entries) {
 			this.entries = Collections.unmodifiableList(entries);
 		}
 
@@ -186,10 +186,10 @@ abstract class CustomValueImpl implements CustomValue {
 		}
 	}
 
-	private static final class StringImpl extends CustomValueImpl {
+	public static final class StringImpl extends CustomValueImpl {
 		final String value;
 
-		StringImpl(String value) {
+		public StringImpl(String value) {
 			this.value = value;
 		}
 
@@ -199,10 +199,10 @@ abstract class CustomValueImpl implements CustomValue {
 		}
 	}
 
-	private static final class NumberImpl extends CustomValueImpl {
+	public static final class NumberImpl extends CustomValueImpl {
 		final Number value;
 
-		NumberImpl(Number value) {
+		public NumberImpl(Number value) {
 			this.value = value;
 		}
 

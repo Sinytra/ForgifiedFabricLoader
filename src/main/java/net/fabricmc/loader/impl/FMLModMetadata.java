@@ -16,20 +16,29 @@
 
 package net.fabricmc.loader.impl;
 
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.mojang.logging.LogUtils;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.*;
+import net.fabricmc.loader.impl.metadata.CustomValueImpl;
 import net.fabricmc.loader.impl.metadata.SimplePerson;
 import net.neoforged.neoforgespi.language.IModInfo;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static cpw.mods.modlauncher.api.LambdaExceptionUtils.uncheck;
 
 public class FMLModMetadata implements ModMetadata {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     private final IModInfo modInfo;
     private final Version version;
     private final Collection<Person> authors;
+    private final Map<String, CustomValue> customValues;
 
     public FMLModMetadata(IModInfo modInfo) {
         this.modInfo = modInfo;
@@ -38,6 +47,8 @@ public class FMLModMetadata implements ModMetadata {
             .flatMap(obj -> obj instanceof List list ? ((List<String>) list).stream() : Stream.of(obj.toString().split(",")))
             .<Person>map(SimplePerson::new)
             .toList();
+        this.customValues = this.modInfo.getModProperties().entrySet().stream()
+                .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> convertModProperty(e.getValue())));
     }
 
     @Override
@@ -115,21 +126,51 @@ public class FMLModMetadata implements ModMetadata {
 
     @Override
     public boolean containsCustomValue(String key) {
-        return false;
+        return this.modInfo.getModProperties().containsKey(key);
     }
 
     @Override
     public CustomValue getCustomValue(String key) {
-        return null;
+        return this.customValues.get(key);
     }
 
     @Override
     public Map<String, CustomValue> getCustomValues() {
-        return Map.of();
+        return this.customValues;
     }
 
     @Override
     public boolean containsCustomElement(String key) {
-        return false;
+        return containsCustomValue(key);
+    }
+
+    @Nullable
+    private static CustomValue convertModProperty(@Nullable Object value) {
+        switch (value) {
+            case null -> {
+                return CustomValueImpl.NULL;
+            }
+            case UnmodifiableConfig config -> {
+                Map<String, CustomValue> entries = config.entrySet().stream()
+                        .collect(Collectors.toMap(UnmodifiableConfig.Entry::getKey, e -> convertModProperty(e.getValue())));
+                return new CustomValueImpl.ObjectImpl(entries);
+            }
+            case ArrayList<?> list -> {
+                List<CustomValue> contents = list.stream().map(FMLModMetadata::convertModProperty).toList();
+                return new CustomValueImpl.ArrayImpl(contents);
+            }
+            case Boolean b -> {
+                return b ? CustomValueImpl.BOOLEAN_TRUE : CustomValueImpl.BOOLEAN_FALSE;
+            }
+            case String str -> {
+                return new CustomValueImpl.StringImpl(str);
+            }
+            case Number num -> {
+                return new CustomValueImpl.NumberImpl(num);
+            }
+            default -> {}
+        }
+        LOGGER.warn("Ignoring custom mod property value '{}' of unsupported type '{}'", value, value.getClass().getName());
+        return null;
     }
 }
