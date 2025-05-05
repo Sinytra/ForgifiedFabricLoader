@@ -46,7 +46,7 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 					URL url = mods.nextElement();
 
 					try {
-						Path path = LoaderUtil.normalizeExistingPath(UrlUtil.getCodeSource(url, "fabric.mod.json"));
+						Path path = LoaderUtil.normalizeExistingPath(UrlUtil.getCodeSource(url, "fabric.mod.json")); // code source may not be normalized if from app cl
 						List<Path> paths = pathGroups.get(path);
 
 						if (paths == null) {
