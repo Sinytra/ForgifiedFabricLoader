@@ -1,6 +1,6 @@
 # Forgified Fabric Loader
 
-[![Build](https://github.com/Sinytra/ForgifiedFabricLoader/actions/workflows/build.yml/badge.svg)](https://github.com/Sinytra/ForgifiedFabricLoader/actions/workflows/build.yml)
+[![Release](https://github.com/Sinytra/ForgifiedFabricLoader/actions/workflows/release.yml/badge.svg)](https://github.com/Sinytra/ForgifiedFabricLoader/actions/workflows/release.yml)
 [![Latest Release](https://maven.su5ed.dev/api/badge/latest/releases/dev/su5ed/sinytra/fabric-loader?color=2280e0&name=Latest%20Release)](https://maven.su5ed.dev/#/releases/dev/su5ed/sinytra/fabric-loader)
 [![License](https://img.shields.io/github/license/sinytra/ForgifiedFabricLoader?color=orange)](https://github.com/Sinytra/ForgifiedFabricLoader/blob/1.20.1/LICENSE)
 
