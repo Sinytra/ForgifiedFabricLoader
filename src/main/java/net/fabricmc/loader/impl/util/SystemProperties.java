@@ -20,6 +20,8 @@ public final class SystemProperties {
 	// whether fabric loader is running in a development environment / mode, affects class path mod discovery, remapping, logging, ...
 	public static final String DEVELOPMENT = "fabric.development";
 	public static final String SIDE = "fabric.side";
+	// file to source mappings from, defaults to mappings/mappings.tiny on the class path
+	public static final String MAPPING_PATH = "fabric.mappingPath";
 	// mapping namespace used by the game, defaults to named if DEVELOPMENT is set or official otherwise
 	public static final String GAME_MAPPING_NAMESPACE = "fabric.gameMappingNamespace";
 	// mapping namespace to use at runtime, defaults to named if DEVELOPMENT is set or intermediary otherwise
