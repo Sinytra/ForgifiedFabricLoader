@@ -34,6 +34,7 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforgespi.language.IModInfo;
 
@@ -65,6 +66,11 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
     }
 
     @Override
+	public String getRawGameVersion() {
+		return FMLLoader.versionInfo().mcVersion();
+	}
+
+	@Override
     public Object getGameInstance() {
         throw new UnsupportedOperationException();
     }
