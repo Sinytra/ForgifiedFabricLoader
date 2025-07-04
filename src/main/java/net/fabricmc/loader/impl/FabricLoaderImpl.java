@@ -34,6 +34,7 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.forgespi.language.IModInfo;
 
@@ -72,6 +73,10 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
     @Override
     public EnvType getEnvironmentType() {
         return FMLEnvironment.dist == Dist.CLIENT ? EnvType.CLIENT : EnvType.SERVER;
+    }
+    
+    public String getRawGameVersion() {
+        return FMLLoader.versionInfo().mcVersion();
     }
 
     /**
