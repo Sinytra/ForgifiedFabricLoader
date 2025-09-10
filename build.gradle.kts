@@ -19,7 +19,7 @@ plugins {
     java
     `maven-publish`
     id("org.cadixdev.licenser") version "0.6.1"
-    id("net.neoforged.gradleutils").version("3.0.0-alpha.10")
+    id("net.neoforged.gradleutils") version "5.0.4"
     // Used for mapping tools only, provides TSRG writer on top of mappings-io
     id("dev.architectury.loom") version "1.7-SNAPSHOT"
 }
