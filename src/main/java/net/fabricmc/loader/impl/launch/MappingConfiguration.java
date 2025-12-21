@@ -17,6 +17,7 @@
 package net.fabricmc.loader.impl.launch;
 
 import net.fabricmc.loader.impl.util.LoaderUtil;
+import net.fabricmc.loader.impl.util.SystemProperties;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
 
@@ -46,6 +47,10 @@ public final class MappingConfiguration {
 
 	public String getTargetNamespace() {
 		return LoaderUtil.RUNTIME_MAPPING;
+	}
+
+	public String getDefaultMixinRemapType() {
+		return System.getProperty(SystemProperties.DEFAULT_MIXIN_REMAP_TYPE, "mixin");
 	}
 
 	public boolean requiresPackageAccessHack() {
