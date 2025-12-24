@@ -49,10 +49,6 @@ public final class MappingConfiguration {
 		return LoaderUtil.RUNTIME_MAPPING;
 	}
 
-	public String getDefaultMixinRemapType() {
-		return System.getProperty(SystemProperties.DEFAULT_MIXIN_REMAP_TYPE, "mixin");
-	}
-
 	public boolean requiresPackageAccessHack() {
 		return false;
 	}
