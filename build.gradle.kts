@@ -69,15 +69,6 @@ configurations {
     implementation {
         extendsFrom(shade)
     }
-
-    runtimeElements {
-        setExtendsFrom(setOf())
-
-        outgoing {
-            artifacts.clear()
-            artifact(tasks.shadowJar)
-        }
-    }
 }
 
 repositories {
