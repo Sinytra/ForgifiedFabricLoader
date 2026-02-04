@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   release:
-    uses: neoforged/actions/.github/workflows/gradle-publish.yml@main
+    uses: neoforged/actions/.github/workflows/gradle-publish.yml@df695e4b2b67ab27e871db8180199119d5f4bbd2
     with:
       java: 21
       pre_gradle_tasks: build
