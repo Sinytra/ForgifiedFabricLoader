@@ -6,6 +6,7 @@ name: Release
 on:
   push:
     branches:
+      - '26.*'
       - '1.*'
 
 permissions:
