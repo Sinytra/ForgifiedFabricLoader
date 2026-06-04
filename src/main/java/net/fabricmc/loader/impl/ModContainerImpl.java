@@ -63,7 +63,9 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 
     @Override
     public Path getRootPath() {
-        return this.modInfo.getOwningFile().getFile().findResource("/");
+        return this.modInfo.getOwningFile().getFile().getContents().findFile("/")
+            .map(Path::of)
+            .orElse(null);
     }
 
     @Override
@@ -73,7 +75,9 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 
     @Override
     public Path getPath(String file) {
-        return this.modInfo.getOwningFile().getFile().findResource(file);
+        return this.modInfo.getOwningFile().getFile().getContents().findFile(file)
+            .map(Path::of)
+            .orElse(null);
     }
 
     @Override

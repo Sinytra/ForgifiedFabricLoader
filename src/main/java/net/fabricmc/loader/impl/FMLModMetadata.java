@@ -27,10 +27,9 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static cpw.mods.modlauncher.api.LambdaExceptionUtils.uncheck;
 
 public class FMLModMetadata implements ModMetadata {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -172,5 +171,13 @@ public class FMLModMetadata implements ModMetadata {
         }
         LOGGER.warn("Ignoring custom mod property value '{}' of unsupported type '{}'", value, value.getClass().getName());
         return null;
+    }
+    
+    private static <T> T uncheck(Callable<T> callable) {
+        try {
+            return callable.call();
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
     }
 }

@@ -23,7 +23,6 @@ import net.neoforged.fml.loading.FMLLoader;
 
 public final class MappingConfiguration {
 	private final String gameId = "minecraft";
-	private final String gameVersion = FMLLoader.versionInfo().mcVersion();
 //	private TinyTree mappings;
 
 	public String getGameId() {
@@ -31,12 +30,12 @@ public final class MappingConfiguration {
 	}
 
 	public String getGameVersion() {
-		return gameVersion;
+		return FMLLoader.getCurrent().getVersionInfo().mcVersion();
 	}
 
 	public boolean matches(String gameId, String gameVersion) {
 		return (this.gameId == null || gameId == null || gameId.equals(this.gameId))
-				&& (this.gameVersion == null || gameVersion == null || gameVersion.equals(this.gameVersion));
+				&& (this.getGameVersion() == null || gameVersion == null || gameVersion.equals(this.getGameVersion()));
 	}
 
 //	public TinyTree getMappings() {
