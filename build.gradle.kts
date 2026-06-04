@@ -81,6 +81,7 @@ dependencies {
     testCompileOnly("org.jetbrains:annotations:23.0.0")
     // Unit testing for mod metadata
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks {
@@ -102,6 +103,10 @@ tasks {
 
     assemble {
         dependsOn(shadowJar)
+    }
+    
+    test {
+        useJUnitPlatform()
     }
 }
 
