@@ -70,7 +70,9 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 
     @Override
     public List<Path> getRootPaths() {
-        return List.of(getRootPath());
+        return this.modInfo.getOwningFile().getFile().getContents().getContentRoots()
+            .stream()
+            .toList();
     }
 
     @Override
