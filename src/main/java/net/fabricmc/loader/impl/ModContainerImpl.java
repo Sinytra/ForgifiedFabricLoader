@@ -18,7 +18,7 @@ package net.fabricmc.loader.impl;
 
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModOrigin;
-import net.fabricmc.loader.impl.discovery.BuiltinMetadataWrapper;
+import net.fabricmc.loader.impl.discovery.FMLMetadataWrapper;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.ModOriginImpl;
 import net.neoforged.neoforgespi.language.IModInfo;
@@ -35,8 +35,8 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
     private final Collection<String> childModIds;
 
     public ModContainerImpl(IModInfo modInfo) {
-        this(modInfo, Optional.ofNullable((LoaderModMetadata) modInfo.getOwningFile().getFileProperties().get("metadata"))
-                .orElseGet(() -> new BuiltinMetadataWrapper(new FMLModMetadata(modInfo))));
+        this(modInfo, Optional.ofNullable((LoaderModMetadata) modInfo.getOwningFile().getFileProperties().get("fabric:metadata"))
+                .orElseGet(() -> new FMLMetadataWrapper(new FMLModMetadata(modInfo))));
     }
 
     public ModContainerImpl(IModInfo modInfo, LoaderModMetadata metadata) {

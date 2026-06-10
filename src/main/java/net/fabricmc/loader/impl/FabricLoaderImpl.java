@@ -199,6 +199,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
     public void addFmlMods(List<? extends IModInfo> fmlMods) {
         if (!loadedFMLMods) {
+            adapterMap.put("default", () -> DefaultLanguageAdapter.INSTANCE);
+
             for (IModInfo mod : fmlMods) {
                 ModContainerImpl container = new ModContainerImpl(mod);
                 if (modMap.put(mod.getModId(), container) != null) {
@@ -208,7 +210,17 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
                 for (String provides : container.getMetadata().getProvides()) {
                     modMap.putIfAbsent(provides, container);
                 }
+                for (String key : container.getMetadata().getEntrypointKeys()) {
+                    for (EntrypointMetadata in : container.getMetadata().getEntrypoints(key)) {
+                        try {
+                            entrypointStorage.add(container, key, in, adapterMap);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
             }
+
             loadedFMLMods = true;
         }
     }
