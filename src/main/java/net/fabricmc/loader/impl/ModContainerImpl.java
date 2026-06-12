@@ -23,6 +23,8 @@ import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.ModOriginImpl;
 import net.neoforged.neoforgespi.language.IModInfo;
 
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -58,20 +60,21 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 
     @Override
     public List<Path> getCodeSourcePaths() {
-        return getRootPaths();
+        return this.modInfo.getOwningFile().getFile().getContents().getContentRoots()
+            .stream()
+            .toList();
     }
 
     @Override
     public Path getRootPath() {
-        return this.modInfo.getOwningFile().getFile().getContents().findFile("/")
-            .map(Path::of)
-            .orElse(null);
+        return getRootPaths().stream().findFirst().orElse(null);
     }
 
     @Override
     public List<Path> getRootPaths() {
         return this.modInfo.getOwningFile().getFile().getContents().getContentRoots()
             .stream()
+            .map(ModContainerImpl::createInnerPath)
             .toList();
     }
 
@@ -109,5 +112,16 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
     @Override
     public String toString() {
         return String.format("%s %s", this.modInfo.getModId(), this.modInfo.getVersion());
+    }
+    
+    private static Path createInnerPath(Path path) {
+        if (Files.isDirectory(path)) {
+            return path;
+        }
+        try {
+            return FileSystems.newFileSystem(path).getRootDirectories().iterator().next();
+        } catch (Exception e) {
+            return path;
+        }
     }
 }
