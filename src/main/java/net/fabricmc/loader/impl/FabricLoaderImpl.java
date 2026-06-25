@@ -19,6 +19,7 @@ package net.fabricmc.loader.impl;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.mojang.logging.LogUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.ModContainer;
@@ -35,6 +36,7 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforgespi.language.IModInfo;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -45,6 +47,7 @@ import java.util.function.Supplier;
 @SuppressWarnings("deprecation")
 public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
     public static final FabricLoaderImpl INSTANCE = InitHelper.get();
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     private final Map<String, ModContainerImpl> modMap = new HashMap<>();
     private final List<ModContainerImpl> mods = new ArrayList<>();
@@ -58,6 +61,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
     private String[] launchArgs;
     private boolean loadedFMLMods;
+    private boolean setupDone;
 
     private FabricLoaderImpl() {
     }
@@ -199,6 +203,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
     public void addFmlMods(List<? extends IModInfo> fmlMods) {
         if (!loadedFMLMods) {
+            LOGGER.debug("Adding {} NeoForge mods to Fabric context", mods.size());
+
             adapterMap.put("default", () -> DefaultLanguageAdapter.INSTANCE);
 
             for (IModInfo mod : fmlMods) {
@@ -234,8 +240,15 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
     }
 
     public void setup() {
+        if (setupDone) {
+            return;
+        }
+
+        addFmlMods(FMLLoader.getCurrent().getLoadingModList().getMods());
         setupLanguageAdapters();
         setupMods();
+
+        setupDone = true;
     }
 
     private void setupLanguageAdapters() {
