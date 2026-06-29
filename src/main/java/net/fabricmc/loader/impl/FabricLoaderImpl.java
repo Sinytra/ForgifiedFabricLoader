@@ -62,6 +62,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
     private final Map<String, ModContainerImpl> modMap = new HashMap<>();
     private final List<ModContainerImpl> mods = new ArrayList<>();
     private final Multimap<String, String> modAliases = HashMultimap.create();
+    private final Set<String> ignoredMods = new HashSet<>();
 
     private final Map<String, Supplier<LanguageAdapter>> adapterMap = new HashMap<>();
     private final EntrypointStorage entrypointStorage = new EntrypointStorage();
@@ -218,6 +219,10 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
             adapterMap.put("default", () -> DefaultLanguageAdapter.INSTANCE);
 
             for (IModInfo mod : fmlMods) {
+                if (ignoredMods.contains(mod.getModId())) {
+                    continue;
+                }
+
                 ModContainerImpl container = new ModContainerImpl(mod);
                 if (modMap.put(mod.getModId(), container) != null) {
                     throw new IllegalStateException("Duplicate fml mod with metadata: " + mod.getModId());
@@ -238,6 +243,10 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
     public Collection<String> getModAliases(String modid) {
         return modAliases.get(modid);
+    }
+    
+    public void ignoreMods(Set<String> modIds) {
+        ignoredMods.addAll(modIds);
     }
 
     public void setup() {
