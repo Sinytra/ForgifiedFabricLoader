@@ -20,6 +20,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.*;
 import net.fabricmc.loader.api.metadata.CustomValue.CvType;
+import net.fabricmc.loader.impl.Constants;
 import net.fabricmc.loader.impl.metadata.AbstractModMetadata;
 import net.fabricmc.loader.impl.metadata.EntrypointMetadata;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
@@ -193,7 +194,7 @@ public class FMLMetadataWrapper extends AbstractModMetadata implements LoaderMod
     private static Map<String, List<EntrypointMetadata>> readEntrypoints(ModMetadata metadata) {
         Map<String, List<EntrypointMetadata>> entrypoints = new HashMap<>();
 
-        CustomValue entrypointsValue = metadata.getCustomValue("fabric:entrypoints");
+        CustomValue entrypointsValue = metadata.getCustomValue(Constants.ENTRYPOINTS);
         if (entrypointsValue != null) {
             entrypointsValue.getAsObject().forEach(entry -> {
                 String key = entry.getKey();

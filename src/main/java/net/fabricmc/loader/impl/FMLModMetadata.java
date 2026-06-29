@@ -47,7 +47,7 @@ public class FMLModMetadata implements ModMetadata {
             .<Person>map(SimplePerson::new)
             .toList();
         this.customValues = this.modInfo.getModProperties().entrySet().stream()
-                .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> convertModProperty(e.getValue())));
+            .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> convertModProperty(e.getValue())));
     }
 
     @Override
@@ -62,14 +62,21 @@ public class FMLModMetadata implements ModMetadata {
 
     @Override
     public Collection<String> getProvides() {
-        List<String> modProvides = new ArrayList<>(this.modInfo.getConfig().<List<String>>getConfigElement("provides").orElseGet(List::of));
+        List<String> modProvides = new ArrayList<>(Optional.ofNullable(this.modInfo.getModProperties().get(Constants.PROVIDES))
+            .filter(List.class::isInstance)
+            .map(o -> (List<String>) o)
+            .orElseGet(List::of));
+
         // Make a guess and convert the modid into a fabric-styled one to increase dependency resolution success rate
         // Certain cross-platform mods such as Cloth Config use an underscored modid on Forge, while using a hyphenated one on Fabric
         if (modProvides.isEmpty() && getId().contains("_")) {
-            String normalized = getId().replace('_', '-');
-            modProvides.add(normalized);
+            String denormalized = getId().replace('_', '-');
+            modProvides.add(denormalized);
         }
+
+        // Add user-configured mod aliases 
         modProvides.addAll(FabricLoaderImpl.INSTANCE.getModAliases(getId()));
+
         return modProvides;
     }
 

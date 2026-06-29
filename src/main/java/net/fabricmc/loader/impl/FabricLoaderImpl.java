@@ -245,7 +245,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
         return modAliases.get(modid);
     }
     
-    public void ignoreMods(Set<String> modIds) {
+    public void ignoreMods(Collection<String> modIds) {
         ignoredMods.addAll(modIds);
     }
 

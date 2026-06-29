@@ -37,7 +37,7 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
     private final Collection<String> childModIds;
 
     public ModContainerImpl(IModInfo modInfo) {
-        this(modInfo, Optional.ofNullable((LoaderModMetadata) modInfo.getOwningFile().getFileProperties().get("fabric:metadata"))
+        this(modInfo, Optional.ofNullable((LoaderModMetadata) modInfo.getOwningFile().getFileProperties().get(Constants.METADATA))
                 .orElseGet(() -> new FMLMetadataWrapper(new FMLModMetadata(modInfo))));
     }
 
