@@ -36,11 +36,21 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforgespi.language.IModInfo;
+import net.neoforged.neoforgespi.locating.ForgeFeature;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -239,7 +249,26 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
         setupLanguageAdapters();
         setupMods();
 
+        // Register the upstream Fabric Loader version as a ForgeFeature
+        var loaderVersion = getUpstreamLoaderVersion();
+        if (loaderVersion != null) {
+            ForgeFeature.registerFeature("fabricLoader", ForgeFeature.VersionFeatureTest.forVersionString(IModInfo.DependencySide.BOTH, loaderVersion));
+        }
+
         setupDone = true;
+    }
+
+    @Nullable
+    private String getUpstreamLoaderVersion() {
+        var loaderVersion = FabricLoaderImpl.class.getResourceAsStream("/net/fabricmc/loader/fabric_loader_version");
+        if (loaderVersion != null) {
+            try (var stream = loaderVersion) {
+                return new String(stream.readAllBytes(), StandardCharsets.UTF_8).trim();
+            } catch (IOException exception) {
+                LOGGER.error("Failed to read Fabric Loader version: ", exception);
+            }
+        }
+        return null;
     }
 
     private void setupLanguageAdapters() {

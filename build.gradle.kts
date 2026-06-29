@@ -84,6 +84,11 @@ tasks {
     test {
         useJUnitPlatform()
     }
+
+    processResources {
+        inputs.property("versionLoaderUpstream", versionLoaderUpstream)
+        expand("fabric_loader_version" to versionLoaderUpstream)
+    }
 }
 
 publishing {
