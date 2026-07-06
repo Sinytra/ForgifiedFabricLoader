@@ -23,9 +23,11 @@ import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.ModOriginImpl;
 import net.neoforged.neoforgespi.language.IModInfo;
 
+import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,7 +40,7 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 
     public ModContainerImpl(IModInfo modInfo) {
         this(modInfo, Optional.ofNullable((LoaderModMetadata) modInfo.getOwningFile().getFileProperties().get(Constants.METADATA))
-                .orElseGet(() -> new FMLMetadataWrapper(new FMLModMetadata(modInfo))));
+            .orElseGet(() -> new FMLMetadataWrapper(new FMLModMetadata(modInfo))));
     }
 
     public ModContainerImpl(IModInfo modInfo, LoaderModMetadata metadata) {
@@ -80,9 +82,18 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 
     @Override
     public Path getPath(String file) {
-        return this.modInfo.getOwningFile().getFile().getContents().findFile(file)
-            .map(Path::of)
-            .orElse(null);
+        Optional<Path> res = findPath(file);
+        if (res.isPresent()) return res.get();
+
+        List<Path> roots = getRootPaths();
+
+        if (!roots.isEmpty()) {
+            Path root = roots.getFirst();
+
+            return root.resolve(file.replace("/", root.getFileSystem().getSeparator()));
+        } else {
+            return Paths.get(".").resolve("missing_ae236f4970ce").resolve(file.replace('/', File.separatorChar));
+        }
     }
 
     @Override
@@ -113,7 +124,7 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
     public String toString() {
         return String.format("%s %s", this.modInfo.getModId(), this.modInfo.getVersion());
     }
-    
+
     private static Path createInnerPath(Path path) {
         if (Files.isDirectory(path)) {
             return path;
